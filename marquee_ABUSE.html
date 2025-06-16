@@ -1,108 +1,133 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Classic Marquee Abuse with Nesting</title>
+  <title>marquee abuse</title>
 </head>
-<body>
+<body style="background: white; color: black; font-family: monospace;">
 
-<marquee behavior="scroll" direction="left">LEFT SCROLLING TEXT</marquee>
-<marquee behavior="scroll" direction="right">RIGHT SCROLLING TEXT</marquee>
-<marquee behavior="alternate">BOUNCE SIDE TO SIDE</marquee>
-
-<marquee direction="up" scrollamount="3" height="100">UP IT GOES</marquee>
-<marquee direction="down" scrollamount="3" height="100">DOWN IT COMES</marquee>
-
-<!-- Abuse level: Over 9000 -->
-<marquee behavior="alternate" scrollamount="50" scrolldelay="1" width="100%">
-  TOO FAST 
-  <marquee behavior="scroll" direction="right" scrollamount="30" width="200">
-    INSIDE TOO FAST
-  </marquee>
-</marquee>
-
-<marquee behavior="scroll" direction="left" scrollamount="1" scrolldelay="500">
-  SLOW AND STEADY
-  <marquee behavior="alternate" scrollamount="2" width="150">
-    NESTED SLOW BOUNCE
-  </marquee>
-</marquee>
-
-<!-- Nesting... because why not -->
-<marquee behavior="scroll" direction="left" scrollamount="10">
-  Outer marquee start
-  <marquee behavior="alternate" scrollamount="5">
-    Nested bounce inside
-    <marquee behavior="scroll" direction="right" scrollamount="3">
-      Deep nested right scroll
+<!-- Left scrolling, basic -->
+<marquee behavior="scroll" direction="left" scrollamount="10" style="color: cyan;">
+  LEFT SCROLLING TEXT
+  <marquee behavior="alternate" scrollamount="8" style="color: lime; font-weight: bold;" width="250">
+    NESTED BOUNCE IN CYAN
+    <marquee behavior="scroll" direction="right" scrollamount="15" style="color: orange;" width="150">
+      DEEP NESTED RIGHT IN LIME
     </marquee>
   </marquee>
-  Outer marquee end
 </marquee>
 
-<marquee behavior="scroll" direction="right" scrollamount="20" scrolldelay="10">
-  FAST RIGHT SCROLLING TEXT
-  <marquee behavior="scroll" direction="left" scrollamount="15" width="180">
-    Nested fast left
+<br>
+
+<!-- Right scrolling with nested right fast -->
+<marquee behavior="scroll" direction="right" scrollamount="12" style="color: magenta;">
+  RIGHT SCROLLING TEXT
+  <marquee behavior="scroll" direction="right" scrollamount="25" width="200" style="color: orange;">
+    NESTED RIGHT FASTER
+    <marquee behavior="alternate" scrollamount="30" width="150" style="color: hotpink;">
+      DEEP NESTED BOUNCE
+      <marquee behavior="scroll" direction="left" scrollamount="5" width="100" style="color: red;">
+        DEEPEST LEFT INSIDE
+      </marquee>
+    </marquee>
   </marquee>
 </marquee>
 
-<marquee behavior="alternate" scrollamount="8" scrolldelay="30" width="300">
-  BOUNCING SLOW
-  <marquee behavior="alternate" scrollamount="5" width="150">
-    Nested slow bounce
+<br>
+
+<!-- Bounce with crazy colors -->
+<marquee behavior="alternate" scrollamount="20" style="color: lime;">
+  BOUNCE SIDE TO SIDE
+  <marquee behavior="scroll" direction="up" scrollamount="5" height="40" width="300" style="color: cyan;">
+    NESTED UP
+    <marquee behavior="scroll" direction="down" scrollamount="7" height="30" width="250" style="color: yellow;">
+      NESTED DOWN
+    </marquee>
   </marquee>
 </marquee>
 
-<marquee direction="up" scrollamount="5" height="80">
-  UPWARD MOVEMENT
-  <marquee direction="down" scrollamount="3" height="40" width="150">
-    Nested down movement
+<br>
+
+<!-- Abuse level: OVER 9000 with rainbow madness -->
+<marquee behavior="alternate" scrollamount="50" scrolldelay="1" width="100%" style="color: red;">
+  TOO FAST 🚀
+  <marquee behavior="scroll" direction="right" scrollamount="40" width="250" style="color: orange;">
+    INSIDE TOO FAST RIGHT
+    <marquee behavior="scroll" direction="right" scrollamount="60" width="200" style="color: yellow;">
+      DEEP FAST RIGHT NESTED
+      <marquee behavior="alternate" scrollamount="80" width="150" style="color: lime;">
+        CRAZY FAST BOUNCE
+        <marquee behavior="scroll" direction="left" scrollamount="90" width="100" style="color: cyan;">
+          INSANE LEFT INSIDE
+        </marquee>
+      </marquee>
+    </marquee>
   </marquee>
 </marquee>
 
-<marquee direction="down" scrollamount="2" height="120">
-  SLOW DESCENT
-  <marquee direction="up" scrollamount="1" height="60" width="100">
-    Nested slow up
+<br>
+
+<!-- Slow and steady with nested bounce -->
+<marquee behavior="scroll" direction="left" scrollamount="2" scrolldelay="500" style="color: black;">
+  SLOW AND STEADY 🐌
+  <marquee behavior="alternate" scrollamount="5" width="180" style="color: blue;">
+    NESTED SLOW BOUNCE
+    <marquee behavior="scroll" direction="right" scrollamount="4" width="120" style="color: violet;">
+      NESTED RIGHT SLOWER
+    </marquee>
   </marquee>
 </marquee>
 
-<!-- Super abuse with width and loop -->
+<br>
 
-<marquee behavior="scroll" direction="left" scrollamount="30" width="50%" loop="10">
+<!-- Vertical chaos -->
+<marquee direction="up" scrollamount="15" height="100" style="color: orange;">
+  UP IT GOES 🔼
+  <marquee behavior="alternate" scrollamount="10" width="300" style="color: yellow;">
+    NESTED BOUNCE SIDE
+    <marquee behavior="scroll" direction="right" scrollamount="15" width="200" style="color: red;">
+      NESTED RIGHT HORIZONTAL
+    </marquee>
+  </marquee>
+</marquee>
+
+<br>
+
+<marquee direction="down" scrollamount="12" height="120" style="color: magenta;">
+  DOWN IT COMES 🔽
+  <marquee behavior="scroll" direction="right" scrollamount="20" width="250" style="color: hotpink;">
+    NESTED RIGHT FAST
+    <marquee behavior="alternate" scrollamount="25" width="150" style="color: lightblue;">
+      DEEP NESTED BOUNCE
+    </marquee>
+  </marquee>
+</marquee>
+
+<br>
+
+<!-- Looping madness -->
+<marquee behavior="scroll" direction="left" scrollamount="40" width="60%" loop="10" style="color: cyan;">
   SUPER FAST LOOPING LEFT
-  <marquee behavior="scroll" direction="right" scrollamount="20" width="200">
-    Nested fast right loop
+  <marquee behavior="scroll" direction="right" scrollamount="35" width="300" loop="8" style="color: lime;">
+    NESTED FAST LOOPING RIGHT
+    <marquee behavior="alternate" scrollamount="20" width="250" style="color: yellow;">
+      DEEP NESTED BOUNCE LOOP
+      <marquee behavior="scroll" direction="left" scrollamount="10" width="150" style="color: orange;">
+        INSANE LEFT LOOP
+      </marquee>
+    </marquee>
   </marquee>
 </marquee>
 
-<marquee behavior="scroll" direction="right" scrollamount="3" width="80%">
-  Slow moving right, wide marquee
-  <marquee behavior="scroll" direction="left" scrollamount="1" width="150">
-    Nested slow left
-  </marquee>
-</marquee>
+<br>
 
-<marquee behavior="alternate" scrollamount="25" width="70%">
-  CRAZY FAST BOUNCE
-  <marquee behavior="alternate" scrollamount="15" width="200">
-    Nested crazy bounce
-  </marquee>
-</marquee>
-
-<!-- Vertical super fast -->
-
-<marquee direction="up" scrollamount="40" height="50">
-  VERTICAL LIGHTNING UP
-  <marquee direction="down" scrollamount="20" height="30" width="120">
-    Nested fast down
-  </marquee>
-</marquee>
-
-<marquee direction="down" scrollamount="35" height="60">
-  FAST DOWN DESCENT
-  <marquee direction="up" scrollamount="10" height="40" width="140">
-    Nested slower up
+<!-- Final chaotic bounce -->
+<marquee behavior="alternate" scrollamount="35" width="80%" style="color: black; font-weight: bold;">
+  CRAZY FAST BOUNCE 🤯
+  <marquee behavior="scroll" direction="right" scrollamount="30" width="300" style="color: red;">
+    NESTED CRAZY RIGHT
+    <marquee behavior="alternate" scrollamount="15" width="250" style="color: violet;">
+      DEEP NESTED BOUNCE INSIDE
+    </marquee>
   </marquee>
 </marquee>
 
