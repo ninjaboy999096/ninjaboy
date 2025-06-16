@@ -1,43 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Marquee Mayhem</title>
-  <style>
-    body {
-      background: black;
-      color: lime;
-      font-family: Comic Sans MS, cursive;
-      overflow: hidden;
-    }
-
-    marquee {
-      font-size: 3em;
-      font-weight: bold;
-      animation: spin 2s infinite linear;
-      text-shadow: 0 0 10px red, 0 0 20px yellow, 0 0 30px green;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      justify-content: space-around;
-    }
-  </style>
+  <title>Marquee Abuse Classic Edition</title>
 </head>
-<body>
-  <div class="container">
-    <marquee behavior="alternate" direction="left" scrollamount="50">TOO FAST</marquee>
-    <marquee behavior="scroll" direction="right" scrollamount="2">but also slow...</marquee>
-    <marquee behavior="alternate" direction="up" scrollamount="25">GOING UP</marquee>
-    <marquee behavior="alternate" direction="down" scrollamount="25">GOING DOWN</marquee>
-    <marquee behavior="scroll" direction="left" scrollamount="999">GONE IN A FLASH</marquee>
-    <marquee behavior="alternate" direction="left" scrollamount="30" style="color: hotpink;">CHAOS MODE</marquee>
-  </div>
+<body bgcolor="black" text="lime">
+
+  <marquee behavior="scroll" direction="left">LEFT SCROLLING TEXT</marquee>
+  <marquee behavior="scroll" direction="right">RIGHT SCROLLING TEXT</marquee>
+  <marquee behavior="alternate">BOUNCE SIDE TO SIDE</marquee>
+  <marquee direction="up" scrollamount="3" height="100">UP IT GOES</marquee>
+  <marquee direction="down" scrollamount="3" height="100">DOWN IT COMES</marquee>
+
+  <!-- Abuse level: Over 9000 -->
+  <marquee behavior="alternate" scrollamount="50" scrolldelay="1" width="100%">🚨 TOO FAST 🚨</marquee>
+  <marquee behavior="scroll" direction="left" scrollamount="1" scrolldelay="500">🐌 SLOW AND STEADY 🐌</marquee>
+
+  <!-- Nesting... because why not -->
+  <marquee behavior="alternate" width="100%">
+    OUTER
+    <marquee behavior="scroll" direction="right" scrollamount="10" width="50%">INNER</marquee>
+  </marquee>
+
 </body>
 </html>
