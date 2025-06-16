@@ -1,25 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Marquee Abuse Classic Edition</title>
+  <title>Classic Marquee Abuse - Plain</title>
 </head>
-<body bgcolor="black" text="lime">
+<body>
 
-  <marquee behavior="scroll" direction="left">LEFT SCROLLING TEXT</marquee>
-  <marquee behavior="scroll" direction="right">RIGHT SCROLLING TEXT</marquee>
-  <marquee behavior="alternate">BOUNCE SIDE TO SIDE</marquee>
-  <marquee direction="up" scrollamount="3" height="100">UP IT GOES</marquee>
-  <marquee direction="down" scrollamount="3" height="100">DOWN IT COMES</marquee>
+<marquee behavior="scroll" direction="left">LEFT SCROLLING TEXT</marquee>
+<marquee behavior="scroll" direction="right">RIGHT SCROLLING TEXT</marquee>
+<marquee behavior="alternate">BOUNCE SIDE TO SIDE</marquee>
+<marquee direction="up" scrollamount="3" height="100">UP IT GOES</marquee>
+<marquee direction="down" scrollamount="3" height="100">DOWN IT COMES</marquee>
 
-  <!-- Abuse level: Over 9000 -->
-  <marquee behavior="alternate" scrollamount="50" scrolldelay="1" width="100%">🚨 TOO FAST 🚨</marquee>
-  <marquee behavior="scroll" direction="left" scrollamount="1" scrolldelay="500">🐌 SLOW AND STEADY 🐌</marquee>
+<!-- Abuse level: Over 9000 -->
+<marquee behavior="alternate" scrollamount="50" scrolldelay="1" width="100%">TOO FAST</marquee>
+<marquee behavior="scroll" direction="left" scrollamount="1" scrolldelay="500">SLOW AND STEADY</marquee>
 
-  <!-- Nesting... because why not -->
-  <marquee behavior="alternate" width="100%">
-    OUTER
-    <marquee behavior="scroll" direction="right" scrollamount="10" width="50%">INNER</marquee>
+<!-- Nesting... because why not -->
+<marquee behavior="scroll" direction="left" scrollamount="10">
+  Outer marquee start
+  <marquee behavior="alternate" scrollamount="5">
+    Nested bounce inside
   </marquee>
+  Outer marquee end
+</marquee>
+
+<!-- More classic abuse -->
+
+<marquee behavior="scroll" direction="right" scrollamount="20" scrolldelay="10">FAST RIGHT SCROLLING TEXT</marquee>
+<marquee behavior="alternate" scrollamount="8" scrolldelay="30" width="300">BOUNCING SLOW</marquee>
+<marquee direction="up" scrollamount="5" height="80">UPWARD MOVEMENT</marquee>
+<marquee direction="down" scrollamount="2" height="120">SLOW DESCENT</marquee>
+
+<!-- Super abuse with width and loop -->
+
+<marquee behavior="scroll" direction="left" scrollamount="30" width="50%" loop="10">
+  SUPER FAST LOOPING LEFT
+</marquee>
+
+<marquee behavior="scroll" direction="right" scrollamount="3" width="80%">
+  Slow moving right, wide marquee
+</marquee>
+
+<!-- Bounce with big scrollamount -->
+
+<marquee behavior="alternate" scrollamount="25" width="70%">
+  CRAZY FAST BOUNCE
+</marquee>
+
+<!-- Vertical super fast -->
+
+<marquee direction="up" scrollamount="40" height="50">
+  VERTICAL LIGHTNING UP
+</marquee>
+
+<marquee direction="down" scrollamount="35" height="60">
+  FAST DOWN DESCENT
+</marquee>
 
 </body>
 </html>
