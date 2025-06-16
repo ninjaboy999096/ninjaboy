@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CSS Hell</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap');
+
+    body {
+      background: repeating-conic-gradient(at center, red 0deg 10deg, black 10deg 20deg);
+      animation: spinbg 5s infinite linear;
+      overflow: hidden;
+    }
+
+    @keyframes spinbg {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(3600deg); }
+    }
+
+    .text1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 100px;
+      color: white;
+      text-align: center;
+      margin-top: 20%;
+      transition: all 40s ease-in-out;
+      text-shadow: 0 0 10px white, 0 0 100px red, 0 0 1000px magenta;
+      filter: invert(0);
+    }
+
+    .text1:hover {
+      color: lime;
+      font-size: 99999px;
+      transform: rotate(99999deg) scale(999);
+      text-shadow: 0 0 9999px yellow, 0 0 99999px magenta;
+      filter: hue-rotate(999999deg) invert(1) blur(100px);
+      mix-blend-mode: difference;
+    }
+
+    * {
+      cursor: url('https://upload.wikimedia.org/wikipedia/commons/3/3b/Windows_XP_Error.svg'), auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="text1">css abuse!</div>
+</body>
+</html>
