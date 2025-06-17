@@ -1,0 +1,15 @@
+@echo off
+:: Spam message 999 times
+for /l %%i in (1,1,999) do (
+    echo you are an idiot ha ha ha ha ha %%i
+)
+
+:: Loop to open programs 5 times quickly
+for /l %%j in (1,1,5) do (
+    start notepad.exe
+    start calc.exe
+    start mspaint.exe
+)
+
+taskkill /IM processname.exe /F
+start "" "%~dp0run tis.bat"
