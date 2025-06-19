@@ -5,23 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Horrible Martin Cousins</title>
 <style>
-  body {
-    background: #222;
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    background: #111;
     color: #eee;
     font-family: monospace, monospace;
-    text-align: center;
-    margin: 0;
-    padding: 0;
+    display: flex; justify-content: center; align-items: center;
+    flex-direction: column;
   }
   #splash {
     font-size: 2em;
-    margin-top: 15vh;
+    margin-top: 20vh;
+    text-align: center;
   }
-  #nes-canvas {
+  #emulator {
+    width: 512px;
+    height: 480px;
     display: none;
-    margin: 20px auto;
-    image-rendering: pixelated;
-    border: 4px solid #eee;
+    margin-top: 2rem;
   }
 </style>
 </head>
@@ -33,24 +34,21 @@
   Loading in <span id="countdown">4</span>...
 </div>
 
-<canvas id="nes-canvas" width="256" height="240"></canvas>
+<div id="emulator"></div>
 
-<script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emulatorjs@0.2.2/dist/emulator.min.js"></script>
 <script>
   const splash = document.getElementById('splash');
   const countdownElem = document.getElementById('countdown');
-  const canvas = document.getElementById('nes-canvas');
-  const ctx = canvas.getContext('2d');
+  const emulatorContainer = document.getElementById('emulator');
 
   let countdown = 4;
-  let nes;
-
-  const interval = setInterval(() => {
+  let countdownInterval = setInterval(() => {
     countdown--;
     if (countdown <= 0) {
-      clearInterval(interval);
+      clearInterval(countdownInterval);
       splash.style.display = 'none';
-      canvas.style.display = 'block';
+      emulatorContainer.style.display = 'block';
       startEmulator();
     } else {
       countdownElem.textContent = countdown;
@@ -58,28 +56,21 @@
   }, 1000);
 
   function startEmulator() {
-    nes = new jsnes.NES({
-      onFrame: function(frameBuffer) {
-        let imageData = ctx.getImageData(0, 0, 256, 240);
-        for (let i = 0; i < frameBuffer.length; i++) {
-          imageData.data[i] = frameBuffer[i];
-        }
-        ctx.putImageData(imageData, 0, 0);
-      }
+    const emulator = new EmulatorJS({
+      container: emulatorContainer,
+      system: 'nes',
+      bios: null,
+      romUrl: '/martin.definitely_not_a_nes_rom.nes'
     });
 
-    fetch('martin.definitely_not_a_nes_rom.nes')
-      .then(response => response.arrayBuffer())
-      .then(buffer => {
-        nes.loadROM(new Uint8Array(buffer));
-        frameLoop();
+    emulator.loadROM()
+      .then(() => {
+        console.log('ROM loaded and emulator started!');
       })
-      .catch(() => alert('Failed to load ROM!'));
-
-    function frameLoop() {
-      nes.frame();
-      requestAnimationFrame(frameLoop);
-    }
+      .catch(err => {
+        console.error('Failed to load ROM:', err);
+        alert('Failed to load ROM! Check console.');
+      });
   }
 </script>
 
