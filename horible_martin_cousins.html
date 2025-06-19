@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Horrible Martin Cousins</title>
+<style>
+  body {
+    background: #222;
+    color: #eee;
+    font-family: monospace, monospace;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+  }
+  #splash {
+    font-size: 2em;
+    margin-top: 15vh;
+  }
+  #nes-canvas {
+    display: none;
+    margin: 20px auto;
+    image-rendering: pixelated;
+    border: 4px solid #eee;
+  }
+</style>
+</head>
+<body>
+
+<div id="splash">
+  Welcome to <b>Horrible Martin Cousins!</b><br />
+  To play, please insert <b>$100,000</b>.<br />
+  Loading in <span id="countdown">4</span>...
+</div>
+
+<canvas id="nes-canvas" width="256" height="240"></canvas>
+
+<script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
+<script>
+  const splash = document.getElementById('splash');
+  const countdownElem = document.getElementById('countdown');
+  const canvas = document.getElementById('nes-canvas');
+  const ctx = canvas.getContext('2d');
+
+  let countdown = 4;
+  let nes;
+
+  const interval = setInterval(() => {
+    countdown--;
+    if (countdown <= 0) {
+      clearInterval(interval);
+      splash.style.display = 'none';
+      canvas.style.display = 'block';
+      startEmulator();
+    } else {
+      countdownElem.textContent = countdown;
+    }
+  }, 1000);
+
+  function startEmulator() {
+    nes = new jsnes.NES({
+      onFrame: function(frameBuffer) {
+        let imageData = ctx.getImageData(0, 0, 256, 240);
+        for (let i = 0; i < frameBuffer.length; i++) {
+          imageData.data[i] = frameBuffer[i];
+        }
+        ctx.putImageData(imageData, 0, 0);
+      }
+    });
+
+    fetch('martin.definitely_not_a_nes_rom')
+      .then(response => response.arrayBuffer())
+      .then(buffer => {
+        nes.loadROM(new Uint8Array(buffer));
+        frameLoop();
+      })
+      .catch(() => alert('Failed to load ROM!'));
+
+    function frameLoop() {
+      nes.frame();
+      requestAnimationFrame(frameLoop);
+    }
+  }
+</script>
+
+</body>
+</html>
