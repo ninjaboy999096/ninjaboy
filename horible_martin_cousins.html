@@ -68,7 +68,7 @@
       }
     });
 
-    fetch('martin.definitely_not_a_nes_rom')
+    fetch('martin.definitely_not_a_nes_rom.nes')
       .then(response => response.arrayBuffer())
       .then(buffer => {
         nes.loadROM(new Uint8Array(buffer));
