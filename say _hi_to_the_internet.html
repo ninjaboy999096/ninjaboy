@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Say hi to the internet</title>
+</head>
+<body>
+
+  <input id="inputAdd" type="text" />
+  <button id="submitBtn">Sign guest book</button>
+  <p id="errorAdd" style="color:red;"></p>
+  <p id="successAdd" style="color:green;"></p>
+
+  <ul id="results"></ul>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <script>
+    const supabaseUrl = 'https://evguiskhoybylzebofce.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const inputAdd = document.getElementById('inputAdd');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorAdd = document.getElementById('errorAdd');
+    const successAdd = document.getElementById('successAdd');
+    const resultsUl = document.getElementById('results');
+
+    // ✅ Allow letters, numbers, space, and these symbols: !@#$%^*_+=-
+    const regex = /^[a-zA-Z0-9 !@#$%^*_+=-]{1,20}$/;
+
+    // ✅ Escapes HTML so people can't inject <script> or tags
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // ✅ Get and show usernames
+    async function fetchEntries() {
+      const { data, error } = await supabase
+        .from('username')
+        .select('username')
+        .order('username', { ascending: true });
+
+      resultsUl.innerHTML = '';
+
+      if (error) {
+        resultsUl.innerHTML = '<li>Error loading entries</li>';
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        resultsUl.innerHTML = '<li>No entries yet</li>';
+        return;
+      }
+
+      for (const row of data) {
+        const li = document.createElement('li');
+        li.textContent = escapeHtml(row.username);
+        resultsUl.appendChild(li);
+      }
+    }
+
+    // ✅ Submit button click
+    submitBtn.addEventListener('click', async () => {
+      errorAdd.textContent = '';
+      successAdd.textContent = '';
+
+      const val = inputAdd.value.trim();
+      if (!regex.test(val)) {
+        errorAdd.textContent = 'Invalid input! Only use a-z, A-Z, 0-9, and !@#$%^*_+=- (max 20 chars).';
+        return;
+      }
+
+      const { error } = await supabase
+        .from('username')
+        .insert([{ username: val }]);
+
+      if (error) {
+        errorAdd.textContent = 'Error adding username: ' + error.message;
+        return;
+      }
+
+      successAdd.textContent = 'Thanks for signing!';
+      inputAdd.value = '';
+      fetchEntries(); // refresh list
+    });
+
+    // ✅ Load all usernames on page start
+    fetchEntries();
+  </script>
+</body>
+</html>
