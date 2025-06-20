@@ -21,12 +21,14 @@
 
   <ul id="results"></ul>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
+    // ✅ Setup
     const supabaseUrl = 'https://evguiskhoybylzebofce.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    // ✅ Elements
     const inputAdd = document.getElementById('inputAdd');
     const inputSearch = document.getElementById('inputSearch');
     const submitBtn = document.getElementById('submitBtn');
@@ -36,6 +38,7 @@
     const successAdd = document.getElementById('successAdd');
     const resultsUl = document.getElementById('results');
 
+    // ✅ Regex and XSS escape
     const regex = /^[a-zA-Z0-9 !@#$%^*_+=-]{1,20}$/;
 
     function escapeHtml(text) {
@@ -47,6 +50,7 @@
         .replace(/'/g, "&#039;");
     }
 
+    // ✅ Load usernames (optionally filtered)
     async function fetchEntries(filter = '') {
       let query = supabase.from('username').select('username').order('username', { ascending: true });
 
@@ -60,6 +64,7 @@
 
       if (error) {
         resultsUl.innerHTML = '<li>Error loading entries</li>';
+        console.error(error);
         return;
       }
 
@@ -75,20 +80,22 @@
       }
     }
 
+    // ✅ Submit new name
     submitBtn.addEventListener('click', async () => {
       errorAdd.textContent = '';
       successAdd.textContent = '';
 
       const val = inputAdd.value.trim();
       if (!regex.test(val)) {
-        errorAdd.textContent = 'Invalid input! Only use a-z, A-Z, 0-9, and !@#$%^*_+=- (max 20 chars).';
+        errorAdd.textContent = 'Invalid input! Use a-z, A-Z, 0-9, and !@#$%^*_+=- (1–20 chars).';
         return;
       }
 
       const { error } = await supabase.from('username').insert([{ username: val }]);
 
       if (error) {
-        errorAdd.textContent = 'Error adding username: ' + error.message;
+        errorAdd.textContent = 'Error adding: ' + error.message;
+        console.error(error);
         return;
       }
 
@@ -97,12 +104,14 @@
       fetchEntries();
     });
 
+    // ✅ Search button
     searchBtn.addEventListener('click', () => {
       const val = inputSearch.value.trim();
       errorSearch.textContent = '';
       fetchEntries(val);
     });
 
+    // ✅ Initial load
     fetchEntries();
   </script>
 </body>
