@@ -6,7 +6,6 @@
 </head>
 <body>
 
-  <!-- Add username -->
   <input id="inputAdd" type="text" />
   <button id="submitBtn">Sign guest book</button>
   <p id="errorAdd" style="color:red;"></p>
@@ -26,6 +25,7 @@
     const successAdd = document.getElementById('successAdd');
     const resultsUl = document.getElementById('results');
 
+    // Allowed chars: letters, numbers, space, !@#$%^*_+=-
     const regex = /^[a-zA-Z0-9 !@#$%^*_+=-]{1,20}$/;
 
     function escapeHtml(text) {
@@ -40,13 +40,13 @@
     async function fetchEntries() {
       const { data, error } = await supabase
         .from('username')
-        .select('username, created_at')
-        .order('created_at', { ascending: false }); // newest first
+        .select('username, "TIME"')
+        .order('"TIME"', { ascending: false });
 
       resultsUl.innerHTML = '';
 
       if (error) {
-        resultsUl.innerHTML = '<li>Error loading entries</li>';
+        resultsUl.innerHTML = '<li>Error loading entries: ' + error.message + '</li>';
         console.error(error);
         return;
       }
@@ -58,7 +58,7 @@
 
       for (const row of data) {
         const li = document.createElement('li');
-        const time = new Date(row.created_at).toLocaleString();
+        const time = new Date(row.TIME).toLocaleString();
         li.textContent = `${escapeHtml(row.username)} — signed at ${time}`;
         resultsUl.appendChild(li);
       }
@@ -74,7 +74,10 @@
         return;
       }
 
-      const { error } = await supabase.from('username').insert([{ username: val }]);
+      // Insert with current time in TIME column
+      const { error } = await supabase.from('username').insert([
+        { username: val, TIME: new Date().toISOString() }
+      ]);
 
       if (error) {
         errorAdd.textContent = 'Error adding: ' + error.message;
@@ -87,6 +90,7 @@
       fetchEntries();
     });
 
+    // Load entries on page load
     fetchEntries();
   </script>
 </body>
