@@ -6,10 +6,18 @@
 </head>
 <body>
 
+  <!-- Add section -->
   <input id="inputAdd" type="text" />
   <button id="submitBtn">Sign guest book</button>
   <p id="errorAdd" style="color:red;"></p>
   <p id="successAdd" style="color:green;"></p>
+
+  <br><br>
+
+  <!-- Search section -->
+  <input id="inputSearch" type="text" />
+  <button id="searchBtn">Search usernames</button>
+  <p id="errorSearch" style="color:red;"></p>
 
   <ul id="results"></ul>
 
@@ -20,15 +28,16 @@
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     const inputAdd = document.getElementById('inputAdd');
+    const inputSearch = document.getElementById('inputSearch');
     const submitBtn = document.getElementById('submitBtn');
+    const searchBtn = document.getElementById('searchBtn');
     const errorAdd = document.getElementById('errorAdd');
+    const errorSearch = document.getElementById('errorSearch');
     const successAdd = document.getElementById('successAdd');
     const resultsUl = document.getElementById('results');
 
-    // ✅ Allow letters, numbers, space, and these symbols: !@#$%^*_+=-
     const regex = /^[a-zA-Z0-9 !@#$%^*_+=-]{1,20}$/;
 
-    // ✅ Escapes HTML so people can't inject <script> or tags
     function escapeHtml(text) {
       return text
         .replace(/&/g, "&amp;")
@@ -38,12 +47,14 @@
         .replace(/'/g, "&#039;");
     }
 
-    // ✅ Get and show usernames
-    async function fetchEntries() {
-      const { data, error } = await supabase
-        .from('username')
-        .select('username')
-        .order('username', { ascending: true });
+    async function fetchEntries(filter = '') {
+      let query = supabase.from('username').select('username').order('username', { ascending: true });
+
+      if (filter) {
+        query = query.ilike('username', `%${filter}%`);
+      }
+
+      const { data, error } = await query;
 
       resultsUl.innerHTML = '';
 
@@ -53,7 +64,7 @@
       }
 
       if (!data || data.length === 0) {
-        resultsUl.innerHTML = '<li>No entries yet</li>';
+        resultsUl.innerHTML = '<li>No matching entries</li>';
         return;
       }
 
@@ -64,7 +75,6 @@
       }
     }
 
-    // ✅ Submit button click
     submitBtn.addEventListener('click', async () => {
       errorAdd.textContent = '';
       successAdd.textContent = '';
@@ -75,9 +85,7 @@
         return;
       }
 
-      const { error } = await supabase
-        .from('username')
-        .insert([{ username: val }]);
+      const { error } = await supabase.from('username').insert([{ username: val }]);
 
       if (error) {
         errorAdd.textContent = 'Error adding username: ' + error.message;
@@ -86,10 +94,15 @@
 
       successAdd.textContent = 'Thanks for signing!';
       inputAdd.value = '';
-      fetchEntries(); // refresh list
+      fetchEntries();
     });
 
-    // ✅ Load all usernames on page start
+    searchBtn.addEventListener('click', () => {
+      const val = inputSearch.value.trim();
+      errorSearch.textContent = '';
+      fetchEntries(val);
+    });
+
     fetchEntries();
   </script>
 </body>
