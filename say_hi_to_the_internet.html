@@ -6,7 +6,7 @@
 </head>
 <body>
 
-  <!-- Add username section -->
+  <!-- Add username -->
   <input id="inputAdd" type="text" />
   <button id="submitBtn">Sign guest book</button>
   <p id="errorAdd" style="color:red;"></p>
@@ -40,8 +40,8 @@
     async function fetchEntries() {
       const { data, error } = await supabase
         .from('username')
-        .select('username')
-        .order('username', { ascending: true });
+        .select('username, created_at')
+        .order('created_at', { ascending: false }); // newest first
 
       resultsUl.innerHTML = '';
 
@@ -58,7 +58,8 @@
 
       for (const row of data) {
         const li = document.createElement('li');
-        li.textContent = escapeHtml(row.username);
+        const time = new Date(row.created_at).toLocaleString();
+        li.textContent = `${escapeHtml(row.username)} — signed at ${time}`;
         resultsUl.appendChild(li);
       }
     }
