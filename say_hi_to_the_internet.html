@@ -6,39 +6,26 @@
 </head>
 <body>
 
-  <!-- Add section -->
+  <!-- Add username section -->
   <input id="inputAdd" type="text" />
   <button id="submitBtn">Sign guest book</button>
   <p id="errorAdd" style="color:red;"></p>
   <p id="successAdd" style="color:green;"></p>
 
-  <br><br>
-
-  <!-- Search section -->
-  <input id="inputSearch" type="text" />
-  <button id="searchBtn">Search usernames</button>
-  <p id="errorSearch" style="color:red;"></p>
-
   <ul id="results"></ul>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    // ✅ Setup
     const supabaseUrl = 'https://evguiskhoybylzebofce.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // ✅ Elements
     const inputAdd = document.getElementById('inputAdd');
-    const inputSearch = document.getElementById('inputSearch');
     const submitBtn = document.getElementById('submitBtn');
-    const searchBtn = document.getElementById('searchBtn');
     const errorAdd = document.getElementById('errorAdd');
-    const errorSearch = document.getElementById('errorSearch');
     const successAdd = document.getElementById('successAdd');
     const resultsUl = document.getElementById('results');
 
-    // ✅ Regex and XSS escape
     const regex = /^[a-zA-Z0-9 !@#$%^*_+=-]{1,20}$/;
 
     function escapeHtml(text) {
@@ -50,15 +37,11 @@
         .replace(/'/g, "&#039;");
     }
 
-    // ✅ Load usernames (optionally filtered)
-    async function fetchEntries(filter = '') {
-      let query = supabase.from('username').select('username').order('username', { ascending: true });
-
-      if (filter) {
-        query = query.ilike('username', `%${filter}%`);
-      }
-
-      const { data, error } = await query;
+    async function fetchEntries() {
+      const { data, error } = await supabase
+        .from('username')
+        .select('username')
+        .order('username', { ascending: true });
 
       resultsUl.innerHTML = '';
 
@@ -69,7 +52,7 @@
       }
 
       if (!data || data.length === 0) {
-        resultsUl.innerHTML = '<li>No matching entries</li>';
+        resultsUl.innerHTML = '<li>No entries yet</li>';
         return;
       }
 
@@ -80,7 +63,6 @@
       }
     }
 
-    // ✅ Submit new name
     submitBtn.addEventListener('click', async () => {
       errorAdd.textContent = '';
       successAdd.textContent = '';
@@ -104,14 +86,6 @@
       fetchEntries();
     });
 
-    // ✅ Search button
-    searchBtn.addEventListener('click', () => {
-      const val = inputSearch.value.trim();
-      errorSearch.textContent = '';
-      fetchEntries(val);
-    });
-
-    // ✅ Initial load
     fetchEntries();
   </script>
 </body>
