@@ -17,36 +17,39 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const supabaseUrl = 'https://evguiskhoybylzebofce.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    document.addEventListener('DOMContentLoaded', () => {
+      const supabaseUrl = 'https://evguiskhoybylzebofce.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk';
+      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    document.getElementById('requestForm').addEventListener('submit', async function(e) {
-      e.preventDefault(); // This stops the normal form submission and page reload
-      const username = document.getElementById('username').value.trim();
-      const reason = document.getElementById('reason').value.trim();
+      const form = document.getElementById('requestForm');
       const messageEl = document.getElementById('message');
 
-      if (!username || !reason) {
-        messageEl.style.color = 'red';
-        messageEl.textContent = 'Please fill in all fields.';
-        return;
-      }
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // stops form from submitting normally and adding '?' to URL
 
-      const { data, error } = await supabase
-        .from('gimie auth')
-        .insert([
-          { username: username, gimie_auth: reason, status: 'pending' }
-        ]);
+        const username = document.getElementById('username').value.trim();
+        const reason = document.getElementById('reason').value.trim();
 
-      if (error) {
-        messageEl.style.color = 'red';
-        messageEl.textContent = 'Error: ' + error.message;
-      } else {
-        messageEl.style.color = 'green';
-        messageEl.textContent = 'Request submitted! Waiting for approval.';
-        e.target.reset();
-      }
+        if (!username || !reason) {
+          messageEl.style.color = 'red';
+          messageEl.textContent = 'Please fill in all fields.';
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('gimie auth')
+          .insert([{ username, gimie_auth: reason, status: 'pending' }]);
+
+        if (error) {
+          messageEl.style.color = 'red';
+          messageEl.textContent = 'Error: ' + error.message;
+        } else {
+          messageEl.style.color = 'green';
+          messageEl.textContent = 'Request submitted! Waiting for approval.';
+          form.reset();
+        }
+      });
     });
   </script>
 </body>
