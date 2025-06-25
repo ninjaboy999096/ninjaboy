@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <title>Submit Non-Anon Request</title>
 </head>
 <body>
   <h2>Request Non-Anon Role</h2>
-<form id="requestForm" onsubmit="return false;">
-  <input type="text" id="username" placeholder="Your username" required />
-  <br /><br />
-  <textarea id="reason" placeholder="Reason for non-anon" required></textarea>
-  <br /><br />
-  <button type="button" id="submitBtn">Submit Request</button>
-</form>
-<div id="message" style="margin-top:10px;color:green;"></div>
+  <form id="requestForm">
+    <input type="text" id="username" placeholder="Your username" required />
+    <br /><br />
+    <textarea id="reason" placeholder="Reason for non-anon" required></textarea>
+    <br /><br />
+    <!-- Use type="button" so clicking won't submit the form automatically -->
+    <button type="button" id="submitBtn">Submit Request</button>
+  </form>
+  <div id="message" style="margin-top:10px;color:green;"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -24,10 +25,10 @@
 
       const form = document.getElementById('requestForm');
       const messageEl = document.getElementById('message');
+      const submitBtn = document.getElementById('submitBtn');
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
+      submitBtn.addEventListener('click', async () => {
+        // Validate inputs
         const username = document.getElementById('username').value.trim();
         const reason = document.getElementById('reason').value.trim();
 
@@ -37,6 +38,7 @@
           return;
         }
 
+        // Insert into Supabase
         const { data, error } = await supabase
           .from('gimie auth')
           .insert([{ username, gimie_auth: reason, status: 'pending' }]);
