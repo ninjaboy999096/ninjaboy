@@ -6,14 +6,14 @@
 </head>
 <body>
   <h2>Request Non-Anon Role</h2>
-  <form id="requestForm">
-    <input type="text" id="username" placeholder="Your username" required />
-    <br /><br />
-    <textarea id="reason" placeholder="Reason for non-anon" required></textarea>
-    <br /><br />
-    <button type="submit">Submit Request</button>
-  </form>
-  <div id="message" style="margin-top:10px;color:green;"></div>
+<form id="requestForm" onsubmit="return false;">
+  <input type="text" id="username" placeholder="Your username" required />
+  <br /><br />
+  <textarea id="reason" placeholder="Reason for non-anon" required></textarea>
+  <br /><br />
+  <button type="button" id="submitBtn">Submit Request</button>
+</form>
+<div id="message" style="margin-top:10px;color:green;"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
