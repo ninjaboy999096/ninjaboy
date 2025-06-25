@@ -40,7 +40,7 @@
 
         // Insert into Supabase
         const { data, error } = await supabase
-          .from('gimie auth')
+          .from('"gimie auth"')
           .insert([{ username, gimie_auth: reason, status: 'pending' }]);
 
         if (error) {
