@@ -2,23 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Form Test</title>
+  <title>Submit Non-Anon Request</title>
 </head>
 <body>
+  <h2>Request Non-Anon Role</h2>
   <form id="requestForm">
     <input type="text" id="username" placeholder="Your username" required />
-    <textarea id="reason" placeholder="Reason" required></textarea>
-    <button type="submit">Submit</button>
+    <br /><br />
+    <textarea id="reason" placeholder="Reason for non-anon" required></textarea>
+    <br /><br />
+    <button type="submit">Submit Request</button>
   </form>
-  <div id="message"></div>
+  <div id="message" style="margin-top:10px;color:green;"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Attach event listener after DOM is ready
     window.onload = () => {
+      const supabaseUrl = 'https://evguiskhoybylzebofce.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk';
+      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
       const form = document.getElementById('requestForm');
-      form.addEventListener('submit', function(e) {
+      const messageEl = document.getElementById('message');
+
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        document.getElementById('message').textContent = 'Submit prevented successfully!';
+
+        const username = document.getElementById('username').value.trim();
+        const reason = document.getElementById('reason').value.trim();
+
+        if (!username || !reason) {
+          messageEl.style.color = 'red';
+          messageEl.textContent = 'Please fill in all fields.';
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('gimie auth')
+          .insert([{ username, gimie_auth: reason, status: 'pending' }]);
+
+        if (error) {
+          messageEl.style.color = 'red';
+          messageEl.textContent = 'Error: ' + error.message;
+        } else {
+          messageEl.style.color = 'green';
+          messageEl.textContent = 'Request submitted! Waiting for approval.';
+          form.reset();
+        }
       });
     };
   </script>
