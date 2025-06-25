@@ -1,58 +1,57 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Submit Non-Anon Request</title>
+  <title>Non-Anon Role Request</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <h2>Request Non-Anon Role</h2>
+
   <form id="requestForm">
     <input type="text" id="username" placeholder="Your username" required />
     <br /><br />
     <textarea id="reason" placeholder="Reason for non-anon" required></textarea>
     <br /><br />
-    <!-- Use type="button" so clicking won't submit the form automatically -->
-    <button type="button" id="submitBtn">Submit Request</button>
+    <button type="submit">Submit Request</button>
   </form>
+
   <div id="message" style="margin-top:10px;color:green;"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    window.onload = () => {
-      const supabaseUrl = 'https://evguiskhoybylzebofce.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk';
-      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabase = window.supabase.createClient(
+      'https://evguiskhoybylzebofce.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk'
+    );
 
-      const form = document.getElementById('requestForm');
-      const messageEl = document.getElementById('message');
-      const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('requestForm');
+    const messageEl = document.getElementById('message');
 
-      submitBtn.addEventListener('click', async () => {
-        // Validate inputs
-        const username = document.getElementById('username').value.trim();
-        const reason = document.getElementById('reason').value.trim();
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault(); // stop page reload
 
-        if (!username || !reason) {
-          messageEl.style.color = 'red';
-          messageEl.textContent = 'Please fill in all fields.';
-          return;
-        }
+      const username = document.getElementById('username').value.trim();
+      const reason = document.getElementById('reason').value.trim();
 
-        // Insert into Supabase
-        const { data, error } = await supabase
-          .from('"gimie auth"')
-          .insert([{ username, gimie_auth: reason, status: 'pending' }]);
+      if (!username || !reason) {
+        messageEl.style.color = 'red';
+        messageEl.textContent = 'Please fill in all fields.';
+        return;
+      }
 
-        if (error) {
-          messageEl.style.color = 'red';
-          messageEl.textContent = 'Error: ' + error.message;
-        } else {
-          messageEl.style.color = 'green';
-          messageEl.textContent = 'Request submitted! Waiting for approval.';
-          form.reset();
-        }
-      });
-    };
+      const { data, error } = await supabase
+        .from('"gimie auth"') // IMPORTANT: table has space, must use quotes
+        .insert([{ username: username, gimie_auth: reason, status: 'pending' }]);
+
+      if (error) {
+        messageEl.style.color = 'red';
+        messageEl.textContent = 'Error: ' + error.message;
+        console.error(error);
+      } else {
+        messageEl.style.color = 'green';
+        messageEl.textContent = 'Request submitted!';
+        form.reset();
+      }
+    });
   </script>
 </body>
 </html>
