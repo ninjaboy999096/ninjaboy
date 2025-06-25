@@ -17,15 +17,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Initialize Supabase client
     const supabaseUrl = 'https://evguiskhoybylzebofce.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Z3Vpc2tob3lieWx6ZWJvZmNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNzY2MDksImV4cCI6MjA2NTk1MjYwOX0.y1o3gvApHOlSvcqFY6mzpEorK4BcCPxGQSmIC_7fNsk';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Form submission handler
-    document.getElementById('requestForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
+    document.getElementById('requestForm').addEventListener('submit', async function(e) {
+      e.preventDefault(); // This stops the normal form submission and page reload
       const username = document.getElementById('username').value.trim();
       const reason = document.getElementById('reason').value.trim();
       const messageEl = document.getElementById('message');
