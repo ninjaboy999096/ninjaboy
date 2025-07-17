@@ -2,13 +2,21 @@
 <html>
 <head>
   <title>Embedded Site</title>
-  <style>
-    iframe {
-      width: 100vw;
-      height: 100vh;
-      border: none;
-    }
-  </style>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  iframe {
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    display: block; /* Removes possible inline spacing */
+  }
+</style>
+
 </head>
 <body>
   <iframe src="https://nl2grgi1r_kq7kff27gd.c.websim.com/" shadow></iframe>
