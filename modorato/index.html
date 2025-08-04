@@ -1,0 +1,106 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderator Access</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
+                    </svg>
+                </div>
+                <h1>Moderator Panel</h1>
+                <p>Access the moderation dashboard</p>
+            </div>
+            
+            <form id="loginForm" class="login-form">
+                <div class="input-group">
+                    <input type="text" id="username" name="username" required="">
+                    <label for="username">Username</label>
+                    <div class="input-line"></div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="password" id="password" name="password" required="">
+                    <label for="password">Password</label>
+                    <div class="input-line"></div>
+                </div>
+                
+                <div class="remember-me">
+                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                    <label for="rememberMe">Remember Me</label>
+                </div>
+                
+                <button type="submit" class="login-button">
+                    <span class="button-text">Access Panel</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+            
+            <div id="errorMessage" class="error-message"></div>
+        </div>
+        
+        <div id="dashboard" class="dashboard" style="display: none;">
+            <div class="dashboard-header">
+                <h1>Moderator Dashboard</h1>
+                <div class="header-info">
+                    <span id="permissionsDisplay" class="permissions-display"></span>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="dashboard-content">
+                <div class="section">
+                    <h3>Banned User Database</h3>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search by IP, User, $banned, $unbanned, or partial match..." class="search-input">
+                        <div class="search-results-count" id="searchResultsCount"></div>
+                    </div>
+                    <div id="bannedDatabase" class="banned-database"></div>
+                </div>
+                
+                <div class="section">
+                    <h3>Protected Users (DNB)</h3>
+                    <div id="dnbUsers" class="data-list"></div>
+                </div>
+                
+                <div class="section">
+                    <h3>Protected IPs (DNIPB)</h3>
+                    <div id="dnipbUsers" class="data-list"></div>
+                </div>
+                
+                <div class="section">
+                    <h3>Port Mapping</h3>
+                    <div id="portMap" class="port-map"></div>
+                </div>
+                
+                <div class="section">
+                    <h3>System Info</h3>
+                    <div id="systemInfo" class="system-info"></div>
+                </div>
+                
+                <div class="section" id="chatSection">
+                    <h3>Live Chat</h3>
+                    <div id="chatMessages" class="chat-messages"></div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chatInput" placeholder="Type a message..." class="chat-input">
+                        <button id="sendChat" class="action-btn">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cursor overlays for other users -->
+    <div id="cursorsContainer"></div>
+    
+    <script type="module" src="script.js"></script>
+
+</body></html>
