@@ -1,0 +1,3 @@
+echo "[Settings]" > ~/.config/gtk-3.0/settings.ini
+echo "gtk-theme-name=���" >> ~/.config/gtk-3.0/settings.ini
+echo "gtk-color-scheme=error" >> ~/.config/gtk-3.0/settings.ini
