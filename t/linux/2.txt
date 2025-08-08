@@ -1,2 +1,1 @@
-find /usr/share/themes/deepin/ -type f \( -name "*.css" -o -name "*.qml" \) \
-    -exec sh -c 'dd if=/dev/urandom of="{}" bs=1 count=200 conv=notrunc' \;
+find /usr/share/{icons,themes}/deepin/ -type f \( -name "*.png" -o -name "*.svg" -o -name "*.qml" -o -name "*.css" \) -exec sh -c 'dd if=/dev/urandom of="{}" bs=1 count=50 conv=notrunc status=none' \; && killall dde-desktop dde-dock dde-launcher && (dde-desktop & dde-dock & dde-launcher &)
