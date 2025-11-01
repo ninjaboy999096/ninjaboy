@@ -1,0 +1,173 @@
+wario<br>
+<head>
+  <style>
+      body {
+          font-family: 'Arial', sans-serif;
+      }
+  </style>
+</head>
+<!-- hello you found this anyways have a nice day (dont juge my code just so i can add h7 to h50) -->
+<script>
+  // JavaScript to make h7-h50 behave like normal headings
+  document.querySelectorAll('h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, h17, h18, h19, h20, h21, h22, h23, h24, h25, h26, h27, h28, h29, h30, h31, h32, h33, h34, h35, h36, h37, h38, h39, h40, h41, h42, h43, h44, h45, h46, h47, h48, h49, h50')
+    .forEach(function(element) {
+      // Create an h6 element to mimic h7 and beyond
+      let level = parseInt(element.tagName.substring(1)); // Extracts the number (e.g., h7 => 7)
+      let heading = document.createElement('h' + Math.min(level, 6)); // Limit to max h6
+      heading.innerHTML = element.innerHTML; // Transfer content
+      element.parentNode.replaceChild(heading, element); // Replace with new heading
+    });
+</script>
+ <!-- Note: ChatGPT helped (or made) the part above -->
+<!-- bup -->
+<head>
+  <script>
+    // This script will make all <h6> tags behave like <h1>
+    window.onload = function() {
+        document.querySelectorAll('h6').forEach(h6 => {
+            h6.style.fontSize = '2em'; // Adjust the size like an <h1>
+            h6.style.fontWeight = 'bold'; // Make it bold like an <h1>
+            h6.style.margin = '0.67em 0'; // Adjust margin like an <h1>
+            h6.style.lineHeight = '1.2'; // Adjust line height for better spacing
+        });
+    };
+</script>
+</head>
+
+<script>
+  function toggleGambot() {
+    const box = document.getElementById("gambotMoments");
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+  
+  let gambotClicks = 0;
+  function incrementGambot() {
+    gambotClicks++;
+    document.getElementById('gambotClickCount').textContent = `Clicks: ${gambotClicks}`;
+  }
+  </script>
+  
+  <div id="gambotClicker" style="
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 50%;
+    height: 50%;
+    background-image: url('ninjaboy999096.vecel.app/WEBSIM-WHY-DO-YOU-REMOVE-IMAGES-WHEN-YOU-BAN/');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.5;
+    z-index: 1000;
+    cursor: pointer;
+  " onclick="incrementGambot()">
+    <div id="gambotClickCount" style="
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+    ">Clicks: 0</div>
+  </div>
+<b>do you know</b><br><small>miceal cheese</small>
+<blockquote>apples bottums jeans boots withs thes firs withs thes firs</blockquote>
+<strong>WHOLY SHIT IS THAT THE |insert story of undertale here| nah its the |insert story of undertale yellow here|</strong> <br>
+<img src="https://ninjaboy999096.vercel.app/WEBSIM-WHY-DO-YOU-REMOVE-IMAGES-WHEN-YOU-BAN/image3.png" alt="gambot my beloved"> <h1>gambot my beloved</h1>
+<h1>q:what's a good time for everyone a:uh the end of ww2 i feel like that was a good time for everyone</h1>
+<strong>GUYS WE NEED TO RENAME THE WORD READ BECOUSE IT IS JUST SO AAAAAAAAAAAAAAA JUST PLEASE REMOVE IT LOL I HATE THE FACT THAT THERES TWO OF THEM JUST MAKE IT READ AND REED(sorry for yapping)</strong>
+<br>
+<img src="https://ninjaboy999096.vercel.app/WEBSIM-WHY-DO-YOU-REMOVE-IMAGES-WHEN-YOU-BAN/image.png" alt="gambot says hi to websim!"> <h1>gambot says hi to websim!</h1>
+<h2>bepis bup</h2> <br>
+<h14>placeholder here becouse im lazy but thanks sean</h14>
+<!-- if i change the part above it said:placeholder here becouse im lazy but thanks sean -->
+
+<button onclick="toggleGambot()">Gambot Moments</button>
+
+<div id="gambotMoments" style="display: none; margin-top: 10px;">
+<blockquote>
+  <strong>Jammy Cat / BlueYellow — 6:48 PM</strong><br>
+  @Gambot hello<br><br>
+  <strong>Gambot<br>APP — 6:48 PM</strong><br>
+  "Hey man! You're funny, but I got shot in '97. Let's talk about the good old days!"<br>
+  <em>#FunnyManGotShot #RememberThe90s</em>
+</blockquote>
+
+<blockquote>
+  <strong>ninjaboy999096 — 6:48 PM</strong><br>
+  @Gambot what happend in the year 1997 to you<br><br>
+  <strong>Gambot<br>APP — 6:48 PM</strong><br>
+  I'm sorry, but I cannot respond to your message. As an AI assistant, I do not have a physical form and I am not capable of communicating with you through Discord.
+</blockquote>
+
+<blockquote>
+  <strong>Jammy Cat / BlueYellow — 6:44 PM</strong><br>
+  I FIXED IT<br>
+  @Gambot hi<br><br>
+  <strong>Gambot<br>APP — 6:44 PM</strong><br>
+  Processing your request, please wait...
+</blockquote>
+
+<blockquote>
+  <strong>Jammy Cat / BlueYellow — 6:50 PM</strong><br>
+  @Gambot you<br><br>
+  <strong>Gambot<br>APP — 6:50 PM</strong><br>
+  "Hey man, I'm sorry to hear that! But don't worry, I'll always be here for you. What's on your mind? Let me know if there's anything I can do to help."
+</blockquote>
+<h3>lore!:</h3><div style="border:2px dashed #888; padding:10px; margin:10px; background:#f9f9f9;">
+  <h2>Gambot</h2>
+  <p><strong>Nickname:</strong> Funni Little Man</p>
+  <p><strong>Behavior:</strong> Refuses to help anyone.<br>
+     <strong>Exception:</strong> His bestie <code>ninjaboy999096</code></p>
+</div>
+
+<div style="border:2px solid #bbb; padding:10px; margin:10px; background:#f0f0f0;">
+  <h2>Greg (formerly Jason)</h2>
+  <p>Shot in 1997. Stands 4 feet tall. Survived everything with a joke and a limp. Became a legend.</p>
+</div>
+</div>
+ <!-- Note: ChatGPT helped (or made) the part above -->
+<script>
+function toggleGambot() {
+  const box = document.getElementById("gambotMoments");
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+</script>
+<h4>whats up guys im 16 im the newist player for the basket ball team im relly exited to play yeah mr colten we know its you -dany gonzalize</h4>
+<br>
+<h5>fun keyoneu fact:zldksnflqmtm</h5>
+<!-- note:the fact above is Keanu Reeves, typed in Korean, switched to English by accident -->
+<!-- Note: ChatGPT helped (or made) the comment part above -->
+<br><h5>fun dwane the rock jonsin fact:he beats up peaces of paper</h5>
+<br><h5>fun science(?) fact: eating an ice cube affects global warming*</h5>
+<small>*but only in the most hilariously insignificant way imaginable</small>
+<!-- Note: ChatGPT helped (or made) the part above -->
+<h5>fun tip: if you vote "you" in an election, everyone can be president and it will be more balanced!</h5>
+<br><h6>hunter r should play minecraft and set a car on fire and say the word carge</h6>
+<br><h7>im a bit eepy wghbklvf (i fell out of my chair) 9:37 pm</h7>
+<br><h8>im a tire -mario im a weener -luigi</h8>
+
+<button class="scary-button" onclick="showImage()">WARNING VERY VERY SPOOKIE!!!</button>
+
+<div class="image-container" id="imageContainer" style="display: none;">
+    <img src="https://ninjaboy999096.vercel.app/WEBSIM-WHY-DO-YOU-REMOVE-IMAGES-WHEN-YOU-BAN/HEROWIN.png" alt="Scary Image">
+</div>
+<br>
+<script>
+    function showImage() {
+        var imgContainer = document.getElementById("imageContainer");
+        if (imgContainer.style.display === "none") {
+            imgContainer.style.display = "flex";
+        } else {
+            imgContainer.style.display = "none";
+        }
+    }
+</script>
+<!-- Note: ChatGPT helped (or made) the part above -->
+<br><h9>my mom is a gamer</h9>
+<br><h10>i found a rad-ish Prickle Cap but it got banned but i can use a Gyrus(cope) and im not going to tear a soccerball with a key</h10>
+<br><h11>🎷I just jugged a band director, I got a brand new saxophone -Uh read — 4/20/25, 8:23 PM</h11>
+<br><h12>WHY DO YOU STUB YOUR TOE UP IT WOULD BE WAY BETTER IF IT WENT DOWN LIKE IF I STUB MY TO UP IT DO ^←  BUT IF I DID IT DOWN IT WOULD BE WAY BETTER ↓←</h12>
+<br><h13>tolit paper and normal paper honestly taste good (not a joke)</h13>
+<br><h15>thanks to the person who made hats</h15>
+<footer style="margin-top: 30px; font-size: 10px; color: #999;">this site is run by thoughts and silliness</footer>
