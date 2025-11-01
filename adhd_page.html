@@ -13,7 +13,7 @@ wario<br>
     .forEach(function(element) {
       // Create an h6 element to mimic h7 and beyond
       let level = parseInt(element.tagName.substring(1)); // Extracts the number (e.g., h7 => 7)
-      let heading = document.createElement('h' + Math.min(level, 6)); // Limit to max h6
+      let heading = document.createElement('h' + Math.min(level, 3)); // Limit to max h6
       heading.innerHTML = element.innerHTML; // Transfer content
       element.parentNode.replaceChild(heading, element); // Replace with new heading
     });
