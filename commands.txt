@@ -1,2 +1,3 @@
 commands!
 !legoislandpiracy tells you how to pirate lego island
+!discord join the discord
