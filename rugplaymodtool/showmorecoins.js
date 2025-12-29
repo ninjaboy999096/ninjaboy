@@ -1,29 +1,24 @@
 (() => {
-  function resolve(v, pool) {
-    if (typeof v === "number") return resolve(pool[v], pool);
-    if (Array.isArray(v)) return v.map(x => resolve(x, pool));
-    if (v && typeof v === "object") {
-      const o = {};
-      for (const k in v) o[k] = resolve(v[k], pool);
-      return o;
-    }
-    return v;
-  }
-
   async function getAllCoins(username) {
     const res = await fetch(`https://rugplay.com/user/${username}/__data.json`);
-    
     if (!res.ok) throw new Error("Failed to fetch user data");
 
     const json = await res.json();
     const node = json.nodes.find(n => n.type === "data" && n.data[0]?.username);
     if (!node) return [];
 
-    const pool = node.data;
+    const data = node.data;
 
-    // resolve the createdCoins array safely
-    const createdCoins = resolve(pool[2], pool).createdCoins;
-    if (!Array.isArray(createdCoins)) return [];
+    // find the index of 'createdCoins' in the uses mapping
+    const profileNode = json.nodes.find(n => n.type === "data" && n.data[0]?.username === 1);
+    if (!profileNode) return [];
+
+    const createdCoinsIndex = profileNode.data.findIndex(x => x && x.createdCoins !== undefined);
+    if (createdCoinsIndex === -1) return [];
+
+    const profileStats = profileNode.data[createdCoinsIndex].stats || {};
+    const createdCoins = profileStats.createdCoins || [];
+
     return createdCoins;
   }
 
@@ -39,30 +34,30 @@
         <td class="pl-6 p-2 font-medium">
           <div class="flex items-center gap-2">
             <div class="h-6 w-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-white">
-              ${c.symbol.slice(0, 2)}
+              ${c.symbol?.slice(0, 2) ?? ""}
             </div>
-            <span class="max-w-44 truncate">${c.name}</span>
+            <span class="max-w-44 truncate">${c.name ?? ""}</span>
           </div>
         </td>
 
         <td class="p-2 font-mono">
-          $${Number(c.currentPrice).toFixed(6)}
+          $${Number(c.currentPrice ?? 0).toFixed(6)}
         </td>
 
         <td class="p-2 font-mono hidden sm:table-cell">
-          $${Number(c.marketCap).toLocaleString()}
+          $${Number(c.marketCap ?? 0).toLocaleString()}
         </td>
 
         <td class="p-2 hidden md:table-cell">
           <span class="${
             c.change24h >= 0 ? "bg-green-600" : "bg-destructive"
           } text-white rounded-md px-2 py-0.5 text-xs font-medium">
-            ${Number(c.change24h).toFixed(2)}%
+            ${Number(c.change24h ?? 0).toFixed(2)}%
           </span>
         </td>
 
         <td class="p-2 hidden lg:table-cell text-muted-foreground text-sm">
-          ${new Date(c.createdAt).toLocaleString()}
+          ${c.createdAt ? new Date(c.createdAt).toLocaleString() : ""}
         </td>
       `;
       tbody.appendChild(tr);
