@@ -1,25 +1,38 @@
 (() => {
+  function resolve(v, pool) {
+    if (typeof v === "number") return resolve(pool[v], pool);
+    if (Array.isArray(v)) return v.map(x => resolve(x, pool));
+    if (v && typeof v === "object") {
+      const o = {};
+      for (const k in v) o[k] = resolve(v[k], pool);
+      return o;
+    }
+    return v;
+  }
+
   async function getAllCoins(username) {
     const res = await fetch(`https://rugplay.com/user/${username}/__data.json`);
     if (!res.ok) throw new Error("Failed to fetch user data");
 
     const json = await res.json();
+
     const node = json.nodes.find(n => n.type === "data" && n.data[0]?.username);
     if (!node) return [];
 
-    const data = node.data;
+    const pool = node.data;
 
-    // find the index of 'createdCoins' in the uses mapping
-    const profileNode = json.nodes.find(n => n.type === "data" && n.data[0]?.username === 1);
+    // Profile node contains createdCoins
+    const profileNode = json.nodes.find(
+      n => n.type === "data" && n.data[0]?.username === 1
+    );
     if (!profileNode) return [];
 
-    const createdCoinsIndex = profileNode.data.findIndex(x => x && x.createdCoins !== undefined);
+    const profileData = profileNode.data;
+    const createdCoinsIndex = profileData.findIndex(x => x && x.createdCoins !== undefined);
     if (createdCoinsIndex === -1) return [];
 
-    const profileStats = profileNode.data[createdCoinsIndex].stats || {};
-    const createdCoins = profileStats.createdCoins || [];
-
-    return createdCoins;
+    const coins = resolve(profileData[createdCoinsIndex].createdCoins, profileData);
+    return coins;
   }
 
   function replaceTable(card, coins) {
@@ -60,6 +73,7 @@
           ${c.createdAt ? new Date(c.createdAt).toLocaleString() : ""}
         </td>
       `;
+
       tbody.appendChild(tr);
     }
   }
