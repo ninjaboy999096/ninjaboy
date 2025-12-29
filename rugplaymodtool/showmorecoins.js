@@ -16,14 +16,23 @@
       if (!res.ok) throw new Error("Failed to fetch user data");
 
       const json = await res.json();
-      const node = json.nodes.find(n => n.type === "data" && n.data?.[0]?.username);
+
+      // find the data node that has createdCoins
+      const node = json.nodes.find(n => n.type === "data" && n.data?.[2]);
       if (!node) return [];
 
       const pool = node.data;
-      const resolved = resolve(pool[2], pool);
-      if (!resolved || !resolved.createdCoins) return [];
+      const resolved2 = resolve(pool[2], pool); // resolves object containing profileData
 
-      return resolved.createdCoins;
+      // profileData is also a number in the pool, resolve it
+      const profileData = resolve(resolved2.profileData, pool);
+
+      if (!profileData?.createdCoins) return [];
+
+      // finally, resolve createdCoins array
+      const coins = resolve(profileData.createdCoins, pool);
+
+      return Array.isArray(coins) ? coins : [];
     } catch (e) {
       console.error("Error fetching coins:", e);
       return [];
