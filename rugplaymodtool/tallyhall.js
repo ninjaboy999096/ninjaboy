@@ -2,8 +2,8 @@
 (() => {
   const PHRASE = "tally hall";
 
-  // Rule 0: roll once on load (1/10 chance)
-  const BUY_MODE = Math.random() < 0.1;
+  // Rule 0: roll once on load (1/2 chance)
+  const BUY_MODE = Math.random() < 0.5;
 
   function corruptText(text) {
     // Rule 1: conditional "buy" replacement
