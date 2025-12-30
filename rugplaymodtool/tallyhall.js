@@ -1,21 +1,29 @@
-// this script is ai
+// this script is by ai
 (() => {
   const PHRASE = "tally hall";
 
-  // Rule 0: roll once on load (1/2 chance)
+  // 1/2 chance ON LOAD to enable buy mode
   const BUY_MODE = Math.random() < 0.5;
 
+  // Make "tally hall" match the length of the thing it replaces
+  function fitPhrase(len) {
+    let out = "";
+    while (out.length < len) out += PHRASE;
+    return out.slice(0, len);
+  }
+
   function corruptText(text) {
-    // Rule 1: conditional "buy" replacement
+    // Buy mode: replace "buy" anywhere, length-matched
     if (BUY_MODE) {
-      text = text.replace(/buy/gi, PHRASE);
+      text = text.replace(/buy/gi, match =>
+        fitPhrase(match.length)
+      );
     }
 
-    // Rule 2: 1/100 chance per word to inject "tally hall"
+    // Chaos rule: 1/100 chance per word
     return text.replace(/\b\w+\b/g, word => {
       if (Math.random() < 0.01) {
-        const cut = Math.floor(Math.random() * (word.length + 1));
-        return PHRASE + word.slice(cut);
+        return fitPhrase(word.length);
       }
       return word;
     });
@@ -38,7 +46,7 @@
   // Initial pass
   walk(document.body);
 
-  // Keep applying to new content
+  // Keep applying to dynamic content
   const observer = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(walk);
@@ -50,4 +58,3 @@
     subtree: true
   });
 })();
-
