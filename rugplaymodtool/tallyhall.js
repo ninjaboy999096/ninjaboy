@@ -22,7 +22,7 @@
 
     // Chaos rule: 1/100 chance per word
     return text.replace(/\b\w+\b/g, word => {
-      if (Math.random() < 0.01) {
+      if (Math.random() < 0.25) {
         return fitPhrase(word.length);
       }
       return word;
