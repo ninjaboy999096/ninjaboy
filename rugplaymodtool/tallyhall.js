@@ -1,11 +1,8 @@
 // this script is by ai
 (() => {
   const PHRASE = "tally hall";
-
-  // 1/2 chance ON LOAD to enable buy mode
   const BUY_MODE = Math.random() < 0.5;
 
-  // Make "tally hall" match the length of the thing it replaces
   function fitPhrase(len) {
     let out = "";
     while (out.length < len) out += PHRASE;
@@ -13,13 +10,12 @@
   }
 
   function corruptText(text) {
-    // Buy mode: replace "buy" anywhere,  NOT length-matched
+    // BUY MODE
     if (BUY_MODE) {
-      text = text.replace(/buy/gi)
-      );
+      text = text.replace(/buy/gi, "tally hall");
     }
 
-    // Chaos rule: 1/100 chance per word
+    // CHAOS MODE: 1/100 per word
     return text.replace(/\b\w+\b/g, word => {
       if (Math.random() < 0.01) {
         return fitPhrase(word.length);
@@ -42,17 +38,29 @@
     }
   }
 
-  // Initial pass
-  walk(document.body);
+  let running = false;
 
-  // Keep applying to dynamic content
-  const observer = new MutationObserver(mutations => {
-    for (const m of mutations) {
-      m.addedNodes.forEach(walk);
+  function apply() {
+    if (running) return;
+    running = true;
+    walk(document.body);
+    running = false;
+  }
+
+  // Wait until real content exists
+  const wait = setInterval(() => {
+    if (document.body && document.body.innerText.length > 500) {
+      clearInterval(wait);
+      apply();
     }
+  }, 200);
+
+  // Catch SPA re-renders
+  const observer = new MutationObserver(() => {
+    apply();
   });
 
-  observer.observe(document.body, {
+  observer.observe(document.documentElement, {
     childList: true,
     subtree: true
   });
