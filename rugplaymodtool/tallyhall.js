@@ -1,29 +1,53 @@
 // this script is ai
 (() => {
-  // Roll 1/2 chance
-  const roll = Math.floor(Math.random() * 2) + 1;
-  if (roll !== 1) return; // only activate if roll is 1
+  const PHRASE = "tally hall";
 
-  console.log("Tally Hall mode activated!");
+  // Rule 0: roll once on load (1/10 chance)
+  const BUY_MODE = Math.random() < 0.1;
 
-  // Function to replace "buy" with "tally hall" in text nodes
-  function replaceText(node) {
+  function corruptText(text) {
+    // Rule 1: conditional "buy" replacement
+    if (BUY_MODE) {
+      text = text.replace(/buy/gi, PHRASE);
+    }
+
+    // Rule 2: 1/100 chance per word to inject "tally hall"
+    return text.replace(/\b\w+\b/g, word => {
+      if (Math.random() < 0.01) {
+        const cut = Math.floor(Math.random() * (word.length + 1));
+        return PHRASE + word.slice(cut);
+      }
+      return word;
+    });
+  }
+
+  function walk(node) {
     if (node.nodeType === Node.TEXT_NODE) {
-      node.textContent = node.textContent.replace(/\bbuy\b/gi, "tally hall");
-    } else {
-      node.childNodes.forEach(replaceText);
+      node.textContent = corruptText(node.textContent);
+      return;
+    }
+
+    if (
+      node.nodeType === Node.ELEMENT_NODE &&
+      !["SCRIPT", "STYLE", "INPUT", "TEXTAREA"].includes(node.tagName)
+    ) {
+      node.childNodes.forEach(walk);
     }
   }
 
-  // Initial replacement on page load
-  replaceText(document.body);
+  // Initial pass
+  walk(document.body);
 
-  // Observe future changes (dynamic content)
+  // Keep applying to new content
   const observer = new MutationObserver(mutations => {
-    for (const mutation of mutations) {
-      mutation.addedNodes.forEach(replaceText);
+    for (const m of mutations) {
+      m.addedNodes.forEach(walk);
     }
   });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
 })();
+
