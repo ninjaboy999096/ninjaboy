@@ -1,6 +1,7 @@
+// this script is ai
 (() => {
-  // Roll 1/10 chance
-  const roll = Math.floor(Math.random() * 10) + 1;
+  // Roll 1/2 chance
+  const roll = Math.floor(Math.random() * 2) + 1;
   if (roll !== 1) return; // only activate if roll is 1
 
   console.log("Tally Hall mode activated!");
