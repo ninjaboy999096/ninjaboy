@@ -13,10 +13,9 @@
   }
 
   function corruptText(text) {
-    // Buy mode: replace "buy" anywhere, length-matched
+    // Buy mode: replace "buy" anywhere,  NOT length-matched
     if (BUY_MODE) {
-      text = text.replace(/buy/gi, match =>
-        fitPhrase(match.length)
+      text = text.replace(/buy/gi)
       );
     }
 
