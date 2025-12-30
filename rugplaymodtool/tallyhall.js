@@ -1,8 +1,15 @@
 // this script is by ai
 (() => {
+  // 🔒 hard lock so it can never run twice
+  if (window.__TALLY_RAN__) return;
+  window.__TALLY_RAN__ = true;
+
   const PHRASE = "tally hall";
+
+  // 50/50 chance on load to enable buy mode
   const BUY_MODE = Math.random() < 0.5;
 
+  // length-matched version (USED ONLY FOR CHAOS)
   function fitPhrase(len) {
     let out = "";
     while (out.length < len) out += PHRASE;
@@ -10,58 +17,57 @@
   }
 
   function corruptText(text) {
-    // BUY MODE
+    let result = text;
+
+    // ✅ BUY MODE — NOT length matched
     if (BUY_MODE) {
-      text = text.replace(/buy/gi, "tally hall");
+      result = result.replace(/\bbuy\b/gi, "tally hall");
     }
 
-    // CHAOS MODE: 1/100 per word
-    return text.replace(/\b\w+\b/g, word => {
+    // ✅ CHAOS MODE — 1% per word, length matched
+    result = result.replace(/\b\w+\b/g, word => {
       if (Math.random() < 0.01) {
         return fitPhrase(word.length);
       }
       return word;
     });
+
+    return result;
   }
 
-  function walk(node) {
-    if (node.nodeType === Node.TEXT_NODE) {
+  function walkOnce(root) {
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
+
+    let node;
+    while ((node = walker.nextNode())) {
+      const parent = node.parentElement;
+      if (!parent) continue;
+
+      if (
+        ["SCRIPT", "STYLE", "INPUT", "TEXTAREA"].includes(parent.tagName)
+      ) continue;
+
+      if (!node.textContent.trim()) continue;
+
       node.textContent = corruptText(node.textContent);
-      return;
-    }
-
-    if (
-      node.nodeType === Node.ELEMENT_NODE &&
-      !["SCRIPT", "STYLE", "INPUT", "TEXTAREA"].includes(node.tagName)
-    ) {
-      node.childNodes.forEach(walk);
     }
   }
 
-  let running = false;
-
-  function apply() {
-    if (running) return;
-    running = true;
-    walk(document.body);
-    running = false;
+  function run() {
+    walkOnce(document.body);
+    console.log("[tally] done | buy mode:", BUY_MODE);
   }
 
-  // Wait until real content exists
-  const wait = setInterval(() => {
-    if (document.body && document.body.innerText.length > 500) {
-      clearInterval(wait);
-      apply();
-    }
-  }, 200);
-
-  // Catch SPA re-renders
-  const observer = new MutationObserver(() => {
-    apply();
-  });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true
-  });
+  // ⏱️ wait for load + 2 seconds, then run ONCE
+  if (document.readyState === "complete") {
+    setTimeout(run, 2000);
+  } else {
+    window.addEventListener("load", () => {
+      setTimeout(run, 2000);
+    });
+  }
 })();
