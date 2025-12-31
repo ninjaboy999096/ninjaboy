@@ -1,76 +1,56 @@
 // this script is made using ai
 
 (() => {
-  if (window.__RISK_SCRIPT_RUNNING__) return;
-  window.__RISK_SCRIPT_RUNNING__ = true;
+  const STATE = { rendered: false };
 
-  /* ---------------- HELPERS ---------------- */
-
-  const normalize = s =>
+  const norm = s =>
     (s || "")
       .toLowerCase()
       .replace(/[^a-z0-9@]/g, "")
       .trim();
 
-  const getTextLines = el =>
-    (el?.innerText || "")
-      .split("\n")
-      .map(l => l.trim())
-      .filter(Boolean);
-
-  const parsePercent = s => {
-    const m = s.match(/([\d.]+)\s*%/);
-    return m ? parseFloat(m[1]) : 0;
-  };
-
-  /* ---------------- FIND CARD ---------------- */
-
-  function findTradeCard() {
+  function findCard() {
     return [...document.querySelectorAll("div")]
-      .find(d =>
-        d.innerText?.includes("Created by") &&
-        d.innerText?.includes("Buy")
-      );
+      .find(d => d.innerText?.includes("Created by") && d.innerText?.includes("Buy"));
   }
-
-  /* ---------------- CREATOR ---------------- */
 
   function getCreator(card) {
-    const lines = getTextLines(card);
+    const lines = card.innerText.split("\n").map(l => l.trim()).filter(Boolean);
     const i = lines.findIndex(l => l.toLowerCase() === "created by");
-    if (i === -1) return { name: "Unknown", handle: "" };
+    if (i === -1) return null;
 
-    const name = lines[i + 1] || "Unknown";
-    const handleMatch = (lines[i + 2] || "").match(/@[\w-]+/);
-    return {
-      name,
-      handle: handleMatch ? handleMatch[0] : ""
-    };
+    const name = lines[i + 1] || "";
+    const handle = lines[i + 2]?.match(/@\w+/)?.[0] || "";
+    return { name, handle };
   }
 
-  /* ---------------- TOP HOLDERS ---------------- */
+  function getHolders(card) {
+    const out = [];
+    const nodes = [...card.querySelectorAll("*")];
 
-  function getTopHolders(card) {
-    const lines = getTextLines(card);
-    const i = lines.findIndex(l => l.toLowerCase() === "top holders");
-    if (i === -1) return [];
+    for (const n of nodes) {
+      const txt = n.innerText;
+      if (!txt || !txt.includes("%")) continue;
+      if (!/[a-z]/i.test(txt)) continue;
 
-    const holders = [];
-    for (let j = i + 1; j < lines.length && holders.length < 3; j++) {
-      if (!lines[j].includes("%")) continue;
+      const m = txt.match(/([\d.]+)\s*%/);
+      if (!m) continue;
 
-      const name = lines[j - 1];
-      const percent = parsePercent(lines[j]);
-      if (name && percent >= 0) {
-        holders.push({ name, percent });
-      }
+      const percent = parseFloat(m[1]);
+      if (percent <= 0) continue;
+
+      const nameLine = txt.split("\n").find(l => /[a-z]/i.test(l) && !l.includes("%"));
+      if (!nameLine) continue;
+
+      out.push({ name: nameLine.trim(), percent });
     }
-    return holders;
+
+    return out
+      .filter((v, i, a) => a.findIndex(x => x.name === v.name) === i)
+      .sort((a, b) => b.percent - a.percent);
   }
 
-  /* ---------------- SCORING ---------------- */
-
-  function ownerPoints(p) {
+  function scoreOwner(p) {
     if (p <= 20) return -4;
     if (p <= 40) return -2;
     if (p <= 60) return 0;
@@ -78,99 +58,72 @@
     return 10;
   }
 
-  function holderPoints(p) {
-    if (p <= 20) return -0.5;
-    if (p <= 40) return -0.25;
-    if (p <= 60) return 0;
-    if (p <= 80) return 0.5;
-    return 1;
-  }
-
-  /* ---------------- MAIN ---------------- */
-
-  function run() {
-    const card = findTradeCard();
-    if (!card) return;
-
-    const creator = getCreator(card);
-    const holders = getTopHolders(card);
-
-    const creatorNorm = normalize(creator.name);
-    let ownerPercent = 0;
-
-    holders.forEach(h => {
-      if (normalize(h.name) === creatorNorm) {
-        ownerPercent = h.percent;
-      }
-    });
-
-    let points = 0;
-    const reasons = [];
-
-    const op = ownerPoints(ownerPercent);
-    points += op;
-    reasons.push(`Owner owns ${ownerPercent}% → ${op >= 0 ? "+" : ""}${op} pts`);
-
-    const ownerInTop3 = holders.some(h => normalize(h.name) === creatorNorm);
-    if (!ownerInTop3) {
-      points -= 4;
-      reasons.push("Owner not in top 3 → -4 pts");
-    }
-
-    holders.forEach((h, i) => {
-      if (normalize(h.name) === creatorNorm) {
-        reasons.push(`Top holder #${i + 1} is the owner`);
-        return;
-      }
-      const hp = holderPoints(h.percent);
-      points += hp;
-      reasons.push(`Top holder #${i + 1} owns ${h.percent}% → ${hp >= 0 ? "+" : ""}${hp} pts`);
-    });
-
-    const maxOther = Math.max(...holders.filter(h => normalize(h.name) !== creatorNorm).map(h => h.percent), 0);
-    if (ownerPercent - maxOther > 50) {
-      points = Math.max(points, ownerPoints(ownerPercent));
-      reasons.push("Massive imbalance: owner dominates supply → good signals discarded");
-    }
-
-    let level = "NO RISK";
-    if (points >= 6) level = "RISKY";
-    else if (points >= 2) level = "LOW RISK";
-    else if (points > 0) level = "MODERATE RISK";
-
-    /* ---------------- RENDER ---------------- */
-
-    document.querySelector("[data-risk-box]")?.remove();
+  function render(card, creator, ownerPct, points, reasons) {
+    card.querySelector("[data-risk]")?.remove();
 
     const box = document.createElement("div");
-    box.setAttribute("data-risk-box", "");
-    box.style.cssText = `
+    box.dataset.risk = "true";
+    box.style = `
       margin-bottom:12px;
       padding:12px;
       border-radius:10px;
       background:#0f0f14;
       color:#eaeaf0;
       border:1px solid #2a2a35;
-      font-family:system-ui;
     `;
 
     box.innerHTML = `
-      <div style="font-weight:600">Coin Risk Analysis</div>
-      <div style="opacity:.85">Creator: ${creator.name}${creator.handle ? ` (${creator.handle})` : ""}</div>
-      <div><b>Risk Points:</b> ${points}</div>
-      <div><b>Risk Level:</b> ${level}</div>
-      <ul style="margin:6px 0 0 16px">
-        ${reasons.map(r => `<li>${r}</li>`).join("")}
-      </ul>
+      <b>Coin Risk Analysis</b><br>
+      Creator: ${creator.name} ${creator.handle || ""}<br><br>
+      <b>Risk Points:</b> ${points}<br>
+      <b>Risk Level:</b> ${points >= 6 ? "RISKY" : points >= 2 ? "LOW RISK" : "NO RISK"}<br><br>
+      <b>Reasons:</b>
+      <ul>${reasons.map(r => `<li>${r}</li>`).join("")}</ul>
     `;
 
-    const buyBtn = [...card.querySelectorAll("button")]
+    const buy = [...card.querySelectorAll("button")]
       .find(b => /buy/i.test(b.innerText));
+    buy?.parentElement.insertBefore(box, buy);
+  }
 
-    if (buyBtn) buyBtn.parentElement.insertBefore(box, buyBtn);
+  function run() {
+    const card = findCard();
+    if (!card) return;
+
+    const creator = getCreator(card);
+    const holders = getHolders(card);
+
+    if (!creator || holders.length < 1) return;
+
+    const owner = holders.find(h =>
+      norm(h.name).includes(norm(creator.name)) ||
+      norm(h.name).includes(norm(creator.handle))
+    );
+
+    if (!owner) return;
+
+    let points = 0;
+    const reasons = [];
+
+    const op = scoreOwner(owner.percent);
+    points += op;
+    reasons.push(`Owner owns ${owner.percent}% → ${op} pts`);
+
+    const top3 = holders.slice(0, 3).filter(h => h !== owner);
+    for (let i = 0; i < top3.length; i++) {
+      const p = top3[i].percent <= 20 ? -0.5 :
+                top3[i].percent <= 40 ? -0.25 :
+                top3[i].percent <= 60 ? 0 :
+                top3[i].percent <= 80 ? 0.5 : 1;
+      points += p;
+      reasons.push(`Top holder #${i + 1} owns ${top3[i].percent}% → ${p} pts`);
+    }
+
+    render(card, creator, owner.percent, points, reasons);
+    STATE.rendered = true;
   }
 
   const obs = new MutationObserver(run);
   obs.observe(document.body, { childList: true, subtree: true });
-  setTimeout(run, 1000);
+  setInterval(run, 1000);
 })();
