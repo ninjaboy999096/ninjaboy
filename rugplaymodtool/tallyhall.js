@@ -5,6 +5,7 @@
   window.__TALLY_RAN__ = true;
 
   const PHRASE = "tally hall";
+  const PROTECT_ATTR = "data-notallyhall";
 
   // 50/50 chance on load to enable buy mode
   const BUY_MODE = Math.random() < 0.5;
@@ -35,6 +36,15 @@
     return result;
   }
 
+  function isProtected(node) {
+    let el = node.parentElement;
+    while (el) {
+      if (el.hasAttribute?.(PROTECT_ATTR)) return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
+
   function walkOnce(root) {
     const walker = document.createTreeWalker(
       root,
@@ -51,6 +61,7 @@
         ["SCRIPT", "STYLE", "INPUT", "TEXTAREA"].includes(parent.tagName)
       ) continue;
 
+      if (isProtected(node)) continue;
       if (!node.textContent.trim()) continue;
 
       node.textContent = corruptText(node.textContent);
