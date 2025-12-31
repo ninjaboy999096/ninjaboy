@@ -14,7 +14,7 @@
     else if (owner.pct <= 80) { points += 5; reasons.push(`Owner owns ${owner.pct}% → +5 pts`); }
     else { points += 10; reasons.push(`Owner owns ${owner.pct}% → +10 pts`); }
 
-    // Top 3 holders (skip owner)
+    // Top 3 holders
     holders.slice(0,3).forEach((h,i) => {
       if (h.name === owner.name) return;
       if (h.pct <= 20) { points -= 0.5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → -0.5 pts`); }
@@ -32,7 +32,6 @@
       points = Math.max(points, 0);
     }
 
-    // Risk level
     let level = points >= 6 ? "RISKY" : points >= 4 ? "PRETTY RISKY" : points >= 2 ? "LOW RISK" : "NO RISK";
     return { points, level, reasons };
   }
@@ -43,8 +42,8 @@
     // Don't insert twice
     if (cardEl.querySelector('[data-notallyhall]')) return;
 
-    const content = cardEl.querySelector('[data-slot="card-content"]');
-    if (!content) return;
+    const buyBtn = cardEl.querySelector('button[data-slot="button"]:not([disabled])');
+    if (!buyBtn) return; // safety check
 
     const { points, level, reasons } = calculateRisk(owner, holders);
 
@@ -79,22 +78,20 @@
     `;
 
     // Insert **above the Buy button**
-    const buyBtn = content.querySelector('button');
-    if (buyBtn) content.insertBefore(box, buyBtn);
-    else content.appendChild(box);
+    buyBtn.parentElement.insertBefore(box, buyBtn);
   }
 
-  // MutationObserver to detect the card when rendered
   const observer = new MutationObserver(() => {
     const card = document.querySelector('[data-slot="card"]');
-    if (card && card.querySelector('[data-slot="card-content"]')) {
+    const buyBtn = card?.querySelector('button[data-slot="button"]:not([disabled])');
+    if (card && buyBtn) {
       observer.disconnect();
 
       const owner = { name: "AssassiN", handle: "assassin", pct: 100 };
       const topHolders = [
         { name: "AssassiN", pct: 100 },
-        { name: "Stonks", pct: 0 },
-        { name: "Alonso", pct: 0 },
+        { name: "Top2", pct: 0 },
+        { name: "Top3", pct: 0 },
       ];
 
       renderRisk(card, owner, topHolders);
