@@ -3,9 +3,9 @@
     return new Promise((resolve, reject) => {
       const start = Date.now();
       const interval = setInterval(() => {
-        // Adjust selector to match the real coin owner card/container
-        const ownerCard = document.querySelector(".coin-owner, .creator-info");
-        if (ownerCard) { clearInterval(interval); resolve(); }
+        // Check if the creator link exists
+        const ownerEl = document.querySelector('a[data-slot="hover-card-trigger"] span.block.truncate');
+        if (ownerEl) { clearInterval(interval); resolve(); }
         if (Date.now() - start > timeout) { clearInterval(interval); reject("Page load timeout"); }
       }, 300);
     });
@@ -17,10 +17,10 @@
       panel = document.createElement("div");
       panel.id = "risk-debug-panel";
       panel.style.position = "fixed";
-      panel.style.top = "10px";        // top-right corner
+      panel.style.top = "10px";
       panel.style.right = "10px";
-      panel.style.background = "black"; // dark background for readability
-      panel.style.color = "lime";      // green text
+      panel.style.background = "black";
+      panel.style.color = "lime";
       panel.style.fontFamily = "monospace";
       panel.style.fontSize = "12px";
       panel.style.padding = "10px";
@@ -38,12 +38,14 @@
   }
 
   function debugOwnerTopHolders() {
-    // Correctly select only the owner container
-    const ownerElement = document.querySelector(".coin-owner, .creator-info")?.innerText || "";
-    
-    // Only grab top holders, avoiding comments and other unrelated text
-    const topHolderElements = document.querySelectorAll(".top-holder"); // adjust to real class
-    const topHolders = Array.from(topHolderElements).map(el => el.innerText.trim());
+    // Grab the owner
+    const ownerElement = document.querySelector('a[data-slot="hover-card-trigger"] span.block.truncate')?.innerText.trim() || "";
+
+    // Grab top holders (adjust this selector to your actual top holder container/class)
+    const topHolderElements = document.querySelectorAll("[data-top-holder], .top-holder, .holder"); 
+    const topHolders = Array.from(topHolderElements)
+                            .slice(0, 10)
+                            .map(el => el.innerText.trim());
 
     injectDebugPanel(ownerElement, topHolders);
   }
