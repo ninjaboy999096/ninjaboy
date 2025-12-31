@@ -18,7 +18,7 @@
     });
   }
 
-  function scoreOwner(percent, scale = 1) {
+  function score(percent, scale = 1) {
     if (percent <= 20) return -4 * scale;
     if (percent <= 40) return -2 * scale;
     if (percent <= 60) return 0;
@@ -34,85 +34,90 @@
   }
 
   async function run() {
-    try {
-      await waitForElement('[data-slot="card-title"]');
+    await waitForElement('[data-slot="card-title"]');
 
-      // --- Get creator ---
-      const creatorName =
-        document.querySelector('p.truncate.text-sm.font-medium')?.textContent ||
-        "Unknown";
+    /* -------- Creator (from "Created by") -------- */
+    const creatorBlock = [...document.querySelectorAll("p")]
+      .find(p => p.textContent?.startsWith("@"))?.parentElement;
 
-      const creatorUser =
-        document.querySelector('p.text-muted-foreground.truncate.text-xs')
-          ?.textContent || "Unknown";
+    const creatorName =
+      creatorBlock?.querySelector("p.text-sm")?.textContent ?? "Unknown";
+    const creatorUser =
+      creatorBlock?.querySelector("p.text-xs")?.textContent ?? "Unknown";
 
-      // --- Get top holders ---
-      const holders = [...document.querySelectorAll('[data-slot="badge"]')]
-        .map(b => parseFloat(b.textContent.replace("%", "")))
-        .filter(n => !isNaN(n))
-        .slice(0, 3);
+    /* -------- Top Holders (from Top Holders card ONLY) -------- */
+    const topHoldersCard = [...document.querySelectorAll('[data-slot="card-title"]')]
+      .find(e => e.textContent.includes("Top Holders"))
+      ?.closest('[data-slot="card"]');
 
-      const owner = holders[0] ?? 0;
-      const third = holders[2] ?? 0;
+    if (!topHoldersCard) return;
 
-      let points = 0;
-      const reasons = [];
+    const rows = [...topHoldersCard.querySelectorAll('[data-slot="badge"]')];
 
-      // Owner risk
-      const ownerScore = scoreOwner(owner);
-      points += ownerScore;
-      reasons.push(`Owner owns ${owner}% → ${ownerScore} pts`);
+    const percents = rows
+      .map(b => parseFloat(b.textContent.replace("%", "")))
+      .filter(n => !isNaN(n))
+      .slice(0, 3);
 
-      // Top 3 risk (reduced scale)
-      holders.forEach((p, i) => {
-        if (i === 0) return;
-        const s = scoreOwner(p, 0.25);
-        if (s !== 0) {
-          points += s;
-          reasons.push(`Top holder #${i + 1} owns ${p}% → ${s} pts`);
-        }
-      });
+    const owner = percents[0] ?? 0;
+    const third = percents[2] ?? 0;
 
-      // Override: massive imbalance
-      if (owner >= 80 && third <= 1) {
-        points = 0;
-        reasons.push(
-          "⚠ Massive imbalance: owner dominates supply → overrides positives"
-        );
+    let points = 0;
+    const reasons = [];
+
+    /* -------- Owner check -------- */
+    const ownerPts = score(owner);
+    points += ownerPts;
+    reasons.push(`Owner owns ${owner}% → ${ownerPts} pts`);
+
+    /* -------- Top 3 check (reduced scale) -------- */
+    percents.forEach((p, i) => {
+      if (i === 0) return;
+      const s = score(p, 0.25);
+      if (s !== 0) {
+        points += s;
+        reasons.push(`Top holder #${i + 1} owns ${p}% → ${s} pts`);
       }
+    });
 
-      // --- UI ---
-      const box = document.createElement("div");
-      box.style.cssText = `
-        position: fixed;
-        top: 12px;
-        right: 12px;
-        z-index: 999999;
-        background: #111;
-        color: #fff;
-        font-family: monospace;
-        font-size: 13px;
-        padding: 12px;
-        border-radius: 8px;
-        max-width: 320px;
-        box-shadow: 0 0 20px rgba(0,0,0,.6);
-        pointer-events: none;
-      `;
-
-      box.innerHTML = `
-        <b>Coin Risk Analysis</b><br><br>
-        <b>Creator:</b> ${creatorName} (${creatorUser})<br>
-        <b>Risk Points:</b> ${points.toFixed(2)}<br>
-        <b>Risk Level:</b> ${riskLabel(points)}<br><br>
-        <b>Reasons:</b><br>
-        ${reasons.map(r => "• " + r).join("<br>")}
-      `;
-
-      document.body.appendChild(box);
-    } catch (e) {
-      console.error("Risk script failed:", e);
+    /* -------- Imbalance override -------- */
+    if (owner >= 80 && third <= 1) {
+      points = 0;
+      reasons.push(
+        "Massive imbalance: owner dominates supply → good signals discarded"
+      );
     }
+
+    /* -------- Inject into Trade LOCK card -------- */
+    const tradeLockCard = [...document.querySelectorAll('[data-slot="card-title"]')]
+      .find(e => e.textContent.includes("Trade LOCK"))
+      ?.closest('[data-slot="card"]');
+
+    if (!tradeLockCard) return;
+
+    const box = document.createElement("div");
+    box.style.cssText = `
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.05);
+      font-family: monospace;
+      font-size: 12px;
+      user-select: text;
+    `;
+
+    box.innerHTML = `
+      <b>Coin Risk Analysis</b><br><br>
+      <b>Creator:</b> ${creatorName} (${creatorUser})<br>
+      <b>Risk Points:</b> ${points.toFixed(2)}<br>
+      <b>Risk Level:</b> ${riskLabel(points)}<br><br>
+      <b>Reasons:</b><br>
+      ${reasons.map(r => "• " + r).join("<br>")}
+    `;
+
+    tradeLockCard.querySelector('[data-slot="card-content"]')
+      ?.appendChild(box);
   }
 
-  run();
+  run().catch(console.error);
 })();
