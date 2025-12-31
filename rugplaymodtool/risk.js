@@ -7,14 +7,12 @@
     let points = 0;
     const reasons = [];
 
-    // Owner risk
     if (owner.pct <= 20) { points -= 4; reasons.push(`Owner owns ${owner.pct}% → -4 pts`); }
     else if (owner.pct <= 40) { points -= 2; reasons.push(`Owner owns ${owner.pct}% → -2 pts`); }
     else if (owner.pct <= 60) { points += 0; reasons.push(`Owner owns ${owner.pct}% → 0 pts`); }
     else if (owner.pct <= 80) { points += 5; reasons.push(`Owner owns ${owner.pct}% → +5 pts`); }
     else { points += 10; reasons.push(`Owner owns ${owner.pct}% → +10 pts`); }
 
-    // Top 3 holders
     holders.slice(0,3).forEach((h,i) => {
       if (h.name === owner.name) return;
       if (h.pct <= 20) { points -= 0.5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → -0.5 pts`); }
@@ -24,7 +22,6 @@
       else { points += 5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → +5 pts`); }
     });
 
-    // Massive imbalance
     const topPct = holders[0]?.pct || 0;
     const thirdPct = holders[2]?.pct || 0;
     if (topPct - thirdPct > 80) {
@@ -32,18 +29,14 @@
       points = Math.max(points, 0);
     }
 
-    let level = points >= 6 ? "RISKY" : points >= 4 ? "PRETTY RISKY" : points >= 2 ? "LOW RISK" : "NO RISK";
+    const level = points >= 6 ? "RISKY" : points >= 4 ? "PRETTY RISKY" : points >= 2 ? "LOW RISK" : "NO RISK";
     return { points, level, reasons };
   }
 
-  function renderRisk(cardEl, owner, holders) {
-    if (!cardEl) return;
-
-    // Don't insert twice
-    if (cardEl.querySelector('[data-notallyhall]')) return;
-
-    const buyBtn = cardEl.querySelector('button[data-slot="button"]:not([disabled])');
-    if (!buyBtn) return; // safety check
+  function renderRisk(buyBtn, owner, holders) {
+    if (!buyBtn) return;
+    const container = buyBtn.parentElement; // this is the div with class "space-y-3"
+    if (!container || container.querySelector('[data-notallyhall]')) return;
 
     const { points, level, reasons } = calculateRisk(owner, holders);
 
@@ -77,25 +70,26 @@
       </div>
     `;
 
-    // Insert **above the Buy button**
-    buyBtn.parentElement.insertBefore(box, buyBtn);
+    container.insertBefore(box, buyBtn); // **insert above the Buy button**
   }
 
   const observer = new MutationObserver(() => {
     const card = document.querySelector('[data-slot="card"]');
-    const buyBtn = card?.querySelector('button[data-slot="button"]:not([disabled])');
-    if (card && buyBtn) {
-      observer.disconnect();
+    if (!card) return;
 
-      const owner = { name: "AssassiN", handle: "assassin", pct: 100 };
-      const topHolders = [
-        { name: "AssassiN", pct: 100 },
-        { name: "Top2", pct: 0 },
-        { name: "Top3", pct: 0 },
-      ];
+    const buyBtn = card.querySelector('div.space-y-3 > button[data-slot="button"]:not([disabled])');
+    if (!buyBtn) return;
 
-      renderRisk(card, owner, topHolders);
-    }
+    observer.disconnect();
+
+    const owner = { name: "AssassiN", handle: "assassin", pct: 100 };
+    const topHolders = [
+      { name: "AssassiN", pct: 100 },
+      { name: "Top2", pct: 0 },
+      { name: "Top3", pct: 0 },
+    ];
+
+    renderRisk(buyBtn, owner, topHolders);
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
