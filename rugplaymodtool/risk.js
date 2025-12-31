@@ -7,12 +7,14 @@
     let points = 0;
     const reasons = [];
 
+    // Owner points
     if (owner.pct <= 20) { points -= 4; reasons.push(`Owner owns ${owner.pct}% → -4 pts`); }
     else if (owner.pct <= 40) { points -= 2; reasons.push(`Owner owns ${owner.pct}% → -2 pts`); }
     else if (owner.pct <= 60) { points += 0; reasons.push(`Owner owns ${owner.pct}% → 0 pts`); }
     else if (owner.pct <= 80) { points += 5; reasons.push(`Owner owns ${owner.pct}% → +5 pts`); }
     else { points += 10; reasons.push(`Owner owns ${owner.pct}% → +10 pts`); }
 
+    // Top 3 holders (reduced points)
     holders.slice(0,3).forEach((h,i) => {
       if (h.name === owner.name) return;
       if (h.pct <= 20) { points -= 0.5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → -0.5 pts`); }
@@ -22,6 +24,7 @@
       else { points += 5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → +5 pts`); }
     });
 
+    // Imbalance check
     const topPct = holders[0]?.pct || 0;
     const thirdPct = holders[2]?.pct || 0;
     if (topPct - thirdPct > 80) {
@@ -35,7 +38,7 @@
 
   function renderRisk(buyBtn, owner, holders) {
     if (!buyBtn) return;
-    const container = buyBtn.parentElement; // this is the div with class "space-y-3"
+    const container = buyBtn.parentElement;
     if (!container || container.querySelector('[data-notallyhall]')) return;
 
     const { points, level, reasons } = calculateRisk(owner, holders);
@@ -70,14 +73,15 @@
       </div>
     `;
 
-    container.insertBefore(box, buyBtn); // **insert above the Buy button**
+    container.insertBefore(box, buyBtn); // **insert above Buy button**
   }
 
+  // Wait for the Buy button to exist using a MutationObserver
   const observer = new MutationObserver(() => {
-    const card = document.querySelector('[data-slot="card"]');
-    if (!card) return;
+    // find Buy button (enabled one)
+    const buyBtn = [...document.querySelectorAll('button[data-slot="button"]')]
+      .find(b => b.textContent.trim().toLowerCase().includes("buy") && !b.disabled);
 
-    const buyBtn = card.querySelector('div.space-y-3 > button[data-slot="button"]:not([disabled])');
     if (!buyBtn) return;
 
     observer.disconnect();
