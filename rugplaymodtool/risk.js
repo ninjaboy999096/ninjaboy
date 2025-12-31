@@ -76,14 +76,19 @@
     else content.appendChild(box);
   }
 
-  // Example usage
-  const card = document.querySelector('[data-slot="card"]');
-  const owner = { name: "AssassiN", handle: "assassin", pct: 100 };
-  const topHolders = [
-    { name: "AssassiN", pct: 100 },
-    { name: "Stonks", pct: 0 },
-    { name: "Alonso", pct: 0 },
-  ];
-
-  renderRisk(card, owner, topHolders);
+  // wait for the card to exist using MutationObserver
+  const observer = new MutationObserver(() => {
+    const card = document.querySelector('[data-slot="card"]');
+    if (card) {
+      observer.disconnect();
+      const owner = { name: "AssassiN", handle: "assassin", pct: 100 };
+      const topHolders = [
+        { name: "AssassiN", pct: 100 },
+        { name: "Stonks", pct: 0 },
+        { name: "Alonso", pct: 0 },
+      ];
+      renderRisk(card, owner, topHolders);
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 })();
