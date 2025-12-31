@@ -1,9 +1,9 @@
-// this script is by ai
+// this script is AI
+
 (() => {
   if (window.__RISK_SCRIPT_RAN__) return;
   window.__RISK_SCRIPT_RAN__ = true;
 
-  // ---- Helper functions for risk ----
   function ownerRisk(percent) {
     if (percent <= 20) return -4;
     if (percent <= 40) return -2;
@@ -27,7 +27,6 @@
     return "NO RISK";
   }
 
-  // ---- Insert the risk card above the Buy button ----
   function insertRiskCard(ownerName, ownerPercent, topHolders) {
     const buyBtn = document.querySelector('button[data-slot="button"]:not([disabled])');
     if (!buyBtn) return;
@@ -35,17 +34,18 @@
     let riskPoints = ownerRisk(ownerPercent);
     const reasons = [`Owner owns ${ownerPercent}% → +${ownerRisk(ownerPercent)} pts`];
 
-    // Adjust top holders list: remove owner from top holders
+    // Filter out the owner if they appear in top holders
     const filteredHolders = topHolders.filter(h => h.name !== ownerName);
+
     filteredHolders.forEach((h, i) => {
       const pts = holderRisk(h.percent);
       reasons.push(`Top holder #${i+1} owns ${h.percent}% → ${pts >= 0 ? "+" : ""}${pts} pts`);
       riskPoints += pts;
     });
 
-    // Massive imbalance: owner dominates rest
     const maxOther = filteredHolders.length ? Math.max(...filteredHolders.map(h => h.percent)) : 0;
     if (ownerPercent - maxOther > 50) {
+      // Disregard all “good” points if massive imbalance
       for (let i = 1; i < reasons.length; i++) {
         reasons[i] = reasons[i].replace(/→ .* pts/, "→ 0 pts");
       }
@@ -84,20 +84,17 @@
     buyBtn.parentElement.insertBefore(card, buyBtn);
   }
 
-  // ---- Fetch coin data from page dynamically ----
   function getCoinData() {
-    // Find creator text dynamically
-    let creatorEl = [...document.querySelectorAll("div, span")]
+    // Grab the creator info
+    const creatorEl = [...document.querySelectorAll("div, span")]
       .find(el => /Created by/i.test(el.textContent));
-    let ownerName = creatorEl?.nextElementSibling?.textContent.trim() || "Unknown";
+    let ownerName = "Unknown";
+    if (creatorEl) {
+      ownerName = creatorEl.nextElementSibling?.textContent.trim() || "Unknown";
+    }
 
-    // Try to parse owner's percent if available; default 100
-    let ownerPercent = 100;
-    const percentMatch = creatorEl?.nextElementSibling?.textContent.match(/(\d+)%/);
-    if (percentMatch) ownerPercent = parseFloat(percentMatch[1]);
-
-    // Grab top holders if they exist
-    const topHolderEls = document.querySelectorAll(".top-holder"); // replace with correct selector
+    // Get top holders from the page
+    const topHolderEls = document.querySelectorAll(".top-holder");
     const topHolders = [...topHolderEls].slice(0, 3).map(el => {
       const name = el.querySelector(".name")?.textContent.trim() || "Unknown";
       const percentText = el.querySelector(".percent")?.textContent.trim() || "0%";
@@ -105,16 +102,25 @@
       return { name, percent };
     });
 
+    // If owner is not listed in top holders, assume 100% ownership
+    let ownerPercent = 0;
+    if (topHolders.some(h => h.name === ownerName)) {
+      ownerPercent = topHolders.find(h => h.name === ownerName).percent;
+    } else {
+      ownerPercent = 100;
+    }
+
     return { ownerName, ownerPercent, topHolders };
   }
 
-  // ---- Observe DOM for Buy button ----
   const observer = new MutationObserver((mutations, obs) => {
-    if (document.querySelector('button[data-slot="button"]:not([disabled])')) {
+    const buyBtn = document.querySelector('button[data-slot="button"]:not([disabled])');
+    if (buyBtn) {
       const { ownerName, ownerPercent, topHolders } = getCoinData();
       insertRiskCard(ownerName, ownerPercent, topHolders);
       obs.disconnect();
     }
   });
+
   observer.observe(document.body, { childList: true, subtree: true });
 })();
