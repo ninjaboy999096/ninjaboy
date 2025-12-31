@@ -1,27 +1,32 @@
 // this script is made using AI
 
 (() => {
-  // Only run once
   if (window.__RISK_SCRIPT_RAN__) return;
   window.__RISK_SCRIPT_RAN__ = true;
 
+  function getCard() {
+    // Find the card content that contains the buy button
+    return document.querySelector('div[data-slot="card-content"] .space-y-3');
+  }
+
   function getCoinData() {
-    // Example: adapt to your site structure
-    const creatorEl = document.querySelector('[data-slot="creator"]');
-    const ownerEl = document.querySelector('[data-slot="owner"]');
-    const holdersEls = document.querySelectorAll('[data-slot="top-holder"]');
-
+    // Grab creator name
+    const creatorEl = document.querySelector('[data-slot="card-content"] [data-creator]');
     const creator = creatorEl?.textContent.trim() || "Unknown";
-    const ownerName = ownerEl?.textContent.trim() || "Unknown";
 
+    // Grab owner and top holders
+    const holdersEls = document.querySelectorAll('[data-slot="card-content"] [data-holder]');
     const owners = [];
-    owners.push({ name: ownerName, percent: parseFloat(ownerEl?.dataset.percent || "0") });
 
-    holdersEls.forEach((h) => {
-      const name = h.dataset.name;
-      const percent = parseFloat(h.dataset.percent || "0");
+    holdersEls.forEach((el) => {
+      const name = el.dataset.name || "Unknown";
+      const percent = parseFloat(el.dataset.percent || "0");
       owners.push({ name, percent });
     });
+
+    // Ensure first is owner
+    const owner = owners[0] || { name: "Unknown", percent: 0 };
+    owners[0] = owner;
 
     return { creator, owners };
   }
@@ -40,20 +45,14 @@
 
     reasons.push(`Owner owns ${owner.percent}% → ${owner.percent > 80 ? "+10 pts" : owner.percent > 60 ? "+5 pts" : owner.percent <= 20 ? "-4 pts" : owner.percent <= 40 ? "-2 pts" : "0 pts"}`);
 
-    // Top 3 holders (excluding owner if already top)
-    const topHolders = owners.slice(1, 4);
-    topHolders.forEach((h, i) => {
-      if (h.percent <= 20) points -= 0.5;
-      else if (h.percent <= 40) points -= 0.25;
-      else points += 0;
-
-      reasons.push(`${h.name ? `Top holder #${i+1} owns ${h.percent}%` : `Top holder #${i+1} unknown`} → ${h.percent <= 20 ? "-0.5 pts" : h.percent <= 40 ? "-0.25 pts" : "0 pts"}`);
+    // Top 3 holders (skip owner if they are in top)
+    owners.slice(1, 4).forEach((h, i) => {
+      reasons.push(`${h.name} owns ${h.percent}% → ${h.percent <= 20 ? "-0.5 pts" : h.percent <= 40 ? "-0.25 pts" : "0 pts"}`);
     });
 
     // Massive imbalance check
-    const thirdPercent = topHolders[1]?.percent || 0;
+    const thirdPercent = owners[2]?.percent || 0;
     if (owner.percent - thirdPercent > 50) {
-      // Discard all negative points
       reasons = reasons.map(r => r.replace(/-.*pts/, "0 pts"));
     }
 
@@ -94,9 +93,9 @@
       </div>
     `;
 
-    // Insert above the Buy button
-    const buyBtn = document.querySelector('button[data-slot="button"][type="button"]');
-    if (buyBtn) buyBtn.parentElement.insertBefore(card, buyBtn);
+    // Insert directly above the Buy button
+    const cardContent = getCard();
+    if (cardContent) cardContent.insertBefore(card, cardContent.querySelector('button[type="button"]'));
   }
 
   function run() {
@@ -104,10 +103,7 @@
     renderRiskCard(data);
   }
 
-  // Wait until page is loaded
-  if (document.readyState === "complete") {
-    run();
-  } else {
-    window.addEventListener("load", run);
-  }
+  if (document.readyState === "complete") run();
+  else window.addEventListener("load", run);
 })();
+
