@@ -8,30 +8,42 @@
     const reasons = [];
 
     // Owner points
-    if (owner.pct <= 20) { points -= 4; reasons.push(`Owner owns ${owner.pct}% → -4 pts`); }
-    else if (owner.pct <= 40) { points -= 2; reasons.push(`Owner owns ${owner.pct}% → -2 pts`); }
-    else if (owner.pct <= 60) { points += 0; reasons.push(`Owner owns ${owner.pct}% → 0 pts`); }
-    else if (owner.pct <= 80) { points += 5; reasons.push(`Owner owns ${owner.pct}% → +5 pts`); }
-    else { points += 10; reasons.push(`Owner owns ${owner.pct}% → +10 pts`); }
+    let ownerPoints = 0;
+    if (owner.pct <= 20) ownerPoints = -4;
+    else if (owner.pct <= 40) ownerPoints = -2;
+    else if (owner.pct <= 60) ownerPoints = 0;
+    else if (owner.pct <= 80) ownerPoints = 5;
+    else ownerPoints = 10;
+    reasons.push(`Owner owns ${owner.pct}% → +${ownerPoints} pts`);
 
     // Top 3 holders (reduced points)
-    holders.slice(0,3).forEach((h,i) => {
-      if (h.name === owner.name) return;
-      if (h.pct <= 20) { points -= 0.5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → -0.5 pts`); }
-      else if (h.pct <= 40) { points -= 0.25; reasons.push(`Top holder #${i+1} owns ${h.pct}% → -0.25 pts`); }
-      else if (h.pct <= 60) { points += 0; reasons.push(`Top holder #${i+1} owns ${h.pct}% → 0 pts`); }
-      else if (h.pct <= 80) { points += 2.5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → +2.5 pts`); }
-      else { points += 5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → +5 pts`); }
+    const holderPoints = [];
+    holders.slice(0, 3).forEach((h, i) => {
+      if (h.name === owner.name) {
+        holderPoints.push(0);
+        reasons.push(`Top holder #${i + 1} owns ${h.pct}% → 0 pts`);
+        return;
+      }
+      let p = 0;
+      if (h.pct <= 20) p = -0.5;
+      else if (h.pct <= 40) p = -0.25;
+      else if (h.pct <= 60) p = 0;
+      else if (h.pct <= 80) p = 2.5;
+      else p = 5;
+      holderPoints.push(p);
+      reasons.push(`Top holder #${i + 1} owns ${h.pct}% → ${p >= 0 ? "+" : ""}${p} pts`);
     });
 
-    // Imbalance check
-    const topPct = holders[0]?.pct || 0;
+    // Imbalance check: owner dominates → discard top holder contributions
     const thirdPct = holders[2]?.pct || 0;
-    if (topPct - thirdPct > 80) {
+    if (owner.pct - thirdPct > 80) {
       reasons.push("Massive imbalance: owner dominates supply → good signals discarded");
-      points = Math.max(points, 0);
+      for (let i = 0; i < holderPoints.length; i++) {
+        if (holderPoints[i] < 0) holderPoints[i] = 0; // negative points become 0
+      }
     }
 
+    points = ownerPoints + holderPoints.reduce((a,b)=>a+b,0);
     const level = points >= 6 ? "RISKY" : points >= 4 ? "PRETTY RISKY" : points >= 2 ? "LOW RISK" : "NO RISK";
     return { points, level, reasons };
   }
@@ -73,17 +85,14 @@
       </div>
     `;
 
-    container.insertBefore(box, buyBtn); // **insert above Buy button**
+    container.insertBefore(box, buyBtn); // insert above Buy button
   }
 
-  // Wait for the Buy button to exist using a MutationObserver
   const observer = new MutationObserver(() => {
-    // find Buy button (enabled one)
     const buyBtn = [...document.querySelectorAll('button[data-slot="button"]')]
       .find(b => b.textContent.trim().toLowerCase().includes("buy") && !b.disabled);
 
     if (!buyBtn) return;
-
     observer.disconnect();
 
     const owner = { name: "AssassiN", handle: "assassin", pct: 100 };
