@@ -1,125 +1,118 @@
-(() => {
-  function parsePercent(text) {
-    return parseFloat(text.replace("%", ""));
+// THIS SCRIPT IS MADE BY AI
+
+(function () {
+  function waitForElement(selector, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const interval = setInterval(() => {
+        const el = document.querySelector(selector);
+        if (el) {
+          clearInterval(interval);
+          resolve(el);
+        }
+        if (Date.now() - start > timeout) {
+          clearInterval(interval);
+          reject("Timeout waiting for " + selector);
+        }
+      }, 200);
+    });
   }
 
-  function getCreator() {
-    // "Created by" section
-    const createdBy = [...document.querySelectorAll("p, div")]
-      .find(el => el.textContent?.includes("Created by"));
-    if (!createdBy) return null;
-
-    const container = createdBy.closest("div");
-    const name = container?.querySelector("p:not(.text-muted-foreground)")?.textContent?.trim();
-    const user = container?.querySelector(".text-muted-foreground")?.textContent?.trim()?.replace("@", "");
-
-    return name && user ? { name, user } : null;
+  function scoreOwner(percent, scale = 1) {
+    if (percent <= 20) return -4 * scale;
+    if (percent <= 40) return -2 * scale;
+    if (percent <= 60) return 0;
+    if (percent <= 80) return 5 * scale;
+    return 10 * scale;
   }
 
-  function getTopHolders() {
-    const card = [...document.querySelectorAll('[data-slot="card-title"]')]
-      .find(el => el.textContent.trim() === "Top Holders")
-      ?.closest('[data-slot="card"]');
-
-    if (!card) return [];
-
-    return [...card.querySelectorAll(".flex.items-center.gap-2")]
-      .map(row => {
-        const name = row.querySelector("p.text-sm")?.textContent.trim();
-        const user = row.querySelector("p.text-xs")?.textContent.replace("@", "").trim();
-        const badge = row.querySelector('[data-slot="badge"]')?.textContent;
-        return badge ? { name, user, percent: parsePercent(badge) } : null;
-      })
-      .filter(Boolean);
+  function riskLabel(points) {
+    if (points >= 6) return "RISKY";
+    if (points >= 4) return "PRETTY RISKY";
+    if (points >= 2) return "LOW RISK";
+    return "NO RISK";
   }
 
-  function scoreOwnership(pct) {
-    if (pct <= 20) return { points: -4, label: "Low owner share" };
-    if (pct <= 40) return { points: -2, label: "Moderate owner share" };
-    if (pct <= 60) return { points: 0, label: "Neutral owner share" };
-    if (pct <= 80) return { points: 5, label: "High owner control" };
-    return { points: 10, label: "Extreme owner control" };
-  }
+  async function run() {
+    try {
+      await waitForElement('[data-slot="card-title"]');
 
-  function scoreTop3(pct) {
-    if (pct <= 20) return { points: -1, label: "Distributed top holders" };
-    if (pct <= 40) return { points: -0.5, label: "Somewhat concentrated top holders" };
-    if (pct <= 60) return { points: 0, label: "Moderate concentration" };
-    if (pct <= 80) return { points: 3, label: "High top-holder concentration" };
-    return { points: 6, label: "Extreme top-holder concentration" };
-  }
+      // --- Get creator ---
+      const creatorName =
+        document.querySelector('p.truncate.text-sm.font-medium')?.textContent ||
+        "Unknown";
 
-  function analyze() {
-    const creator = getCreator();
-    const holders = getTopHolders();
-    if (!creator || holders.length === 0) return;
+      const creatorUser =
+        document.querySelector('p.text-muted-foreground.truncate.text-xs')
+          ?.textContent || "Unknown";
 
-    const owner = holders.find(h => h.user === creator.user);
-    if (!owner) return;
+      // --- Get top holders ---
+      const holders = [...document.querySelectorAll('[data-slot="badge"]')]
+        .map(b => parseFloat(b.textContent.replace("%", "")))
+        .filter(n => !isNaN(n))
+        .slice(0, 3);
 
-    let points = 0;
-    const reasons = [];
+      const owner = holders[0] ?? 0;
+      const third = holders[2] ?? 0;
 
-    // Owner score
-    const ownerScore = scoreOwnership(owner.percent);
-    points += ownerScore.points;
-    reasons.push(`${ownerScore.label} (${owner.percent}%)`);
+      let points = 0;
+      const reasons = [];
 
-    // Top 3 score
-    const top3 = holders.slice(0, 3);
-    const top3Total = top3.reduce((s, h) => s + h.percent, 0);
-    const top3Score = scoreTop3(top3Total);
-    points += top3Score.points;
-    reasons.push(`${top3Score.label} (Top 3 = ${top3Total}%)`);
+      // Owner risk
+      const ownerScore = scoreOwner(owner);
+      points += ownerScore;
+      reasons.push(`Owner owns ${owner}% → ${ownerScore} pts`);
 
-    // Insane imbalance override
-    const third = top3[2]?.percent ?? 0;
-    if (owner.percent >= 90 && third <= 1) {
-      points = 6;
-      reasons.push("⚠ Extreme imbalance: owner dominance wipes positives");
+      // Top 3 risk (reduced scale)
+      holders.forEach((p, i) => {
+        if (i === 0) return;
+        const s = scoreOwner(p, 0.25);
+        if (s !== 0) {
+          points += s;
+          reasons.push(`Top holder #${i + 1} owns ${p}% → ${s} pts`);
+        }
+      });
+
+      // Override: massive imbalance
+      if (owner >= 80 && third <= 1) {
+        points = 0;
+        reasons.push(
+          "⚠ Massive imbalance: owner dominates supply → overrides positives"
+        );
+      }
+
+      // --- UI ---
+      const box = document.createElement("div");
+      box.style.cssText = `
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 999999;
+        background: #111;
+        color: #fff;
+        font-family: monospace;
+        font-size: 13px;
+        padding: 12px;
+        border-radius: 8px;
+        max-width: 320px;
+        box-shadow: 0 0 20px rgba(0,0,0,.6);
+        pointer-events: none;
+      `;
+
+      box.innerHTML = `
+        <b>Coin Risk Analysis</b><br><br>
+        <b>Creator:</b> ${creatorName} (${creatorUser})<br>
+        <b>Risk Points:</b> ${points.toFixed(2)}<br>
+        <b>Risk Level:</b> ${riskLabel(points)}<br><br>
+        <b>Reasons:</b><br>
+        ${reasons.map(r => "• " + r).join("<br>")}
+      `;
+
+      document.body.appendChild(box);
+    } catch (e) {
+      console.error("Risk script failed:", e);
     }
-
-    let level =
-      points >= 6 ? "HIGH RISK" :
-      points >= 4 ? "RISKY" :
-      points >= 2 ? "LOW RISK" :
-      "NO RISK";
-
-    injectUI(points, level, reasons);
   }
 
-  function injectUI(points, level, reasons) {
-    if (document.getElementById("coin-risk-box")) return;
-
-    const box = document.createElement("div");
-    box.id = "coin-risk-box";
-    box.style.cssText = `
-      margin-top: 12px;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 12px;
-      background: #0f0f14;
-      color: white;
-      font-size: 13px;
-    `;
-
-    box.innerHTML = `
-      <div style="font-weight:600;margin-bottom:6px;">
-        Coin Risk Analysis
-      </div>
-      <div>Risk points: <b>${points}</b></div>
-      <div>Status: <b>${level}</b></div>
-      <ul style="margin-top:6px;padding-left:16px;">
-        ${reasons.map(r => `<li>${r}</li>`).join("")}
-      </ul>
-    `;
-
-    const target = document.querySelector('[data-slot="card-title"]')?.closest('[data-slot="card"]');
-    target?.after(box);
-  }
-
-  const observer = new MutationObserver(analyze);
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  analyze();
+  run();
 })();
