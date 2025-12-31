@@ -1,29 +1,55 @@
-// THIS SCRIPT IS MADE BY AI
+// this script is made by ai
 
 (function () {
-  function waitForElement(selector, timeout = 10000) {
-    return new Promise((resolve, reject) => {
-      const start = Date.now();
-      const interval = setInterval(() => {
-        const el = document.querySelector(selector);
-        if (el) {
-          clearInterval(interval);
-          resolve(el);
-        }
-        if (Date.now() - start > timeout) {
-          clearInterval(interval);
-          reject("Timeout waiting for " + selector);
-        }
-      }, 200);
-    });
+  "use strict";
+
+  const PROTECT_ATTR = "data-notallyhall";
+
+  function findTopHoldersCard() {
+    return [...document.querySelectorAll('[data-slot="card"]')]
+      .find(card => card.textContent.includes("Top Holders"));
   }
 
-  function score(percent, scale = 1) {
-    if (percent <= 20) return -4 * scale;
-    if (percent <= 40) return -2 * scale;
-    if (percent <= 60) return 0;
-    if (percent <= 80) return 5 * scale;
-    return 10 * scale;
+  function parsePercent(text) {
+    const n = parseFloat(text.replace("%", ""));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function calculateRisk(ownerPct, top3) {
+    let points = 0;
+    const reasons = [];
+
+    function ownerRule(pct) {
+      if (pct <= 20) return -4;
+      if (pct <= 40) return -2;
+      if (pct <= 60) return 0;
+      if (pct <= 80) return 5;
+      return 10;
+    }
+
+    const ownerPts = ownerRule(ownerPct);
+    points += ownerPts;
+    reasons.push(`Owner owns ${ownerPct}% → ${ownerPts} pts`);
+
+    top3.forEach((pct, i) => {
+      let p = 0;
+      if (pct <= 20) p = -1;
+      else if (pct <= 40) p = -0.5;
+      else if (pct <= 60) p = 0;
+      else if (pct <= 80) p = 2.5;
+      else p = 5;
+
+      points += p;
+      reasons.push(`Top holder #${i + 1} owns ${pct}% → ${p} pts`);
+    });
+
+    // imbalance check
+    if (ownerPct >= 90 && top3.every(p => p < 1)) {
+      reasons.push("Massive imbalance: owner dominates supply → all positives discarded");
+      points = Math.max(points, 6);
+    }
+
+    return { points: Math.round(points * 100) / 100, reasons };
   }
 
   function riskLabel(points) {
@@ -33,91 +59,69 @@
     return "NO RISK";
   }
 
-  async function run() {
-    await waitForElement('[data-slot="card-title"]');
+  function insertPanel(text) {
+    const tradeCard = [...document.querySelectorAll('[data-slot="card"]')]
+      .find(c => c.textContent.includes("Trade LOCK"));
 
-    /* -------- Creator (from "Created by") -------- */
-    const creatorBlock = [...document.querySelectorAll("p")]
-      .find(p => p.textContent?.startsWith("@"))?.parentElement;
+    if (!tradeCard) return;
 
-    const creatorName =
-      creatorBlock?.querySelector("p.text-sm")?.textContent ?? "Unknown";
-    const creatorUser =
-      creatorBlock?.querySelector("p.text-xs")?.textContent ?? "Unknown";
-
-    /* -------- Top Holders (from Top Holders card ONLY) -------- */
-    const topHoldersCard = [...document.querySelectorAll('[data-slot="card-title"]')]
-      .find(e => e.textContent.includes("Top Holders"))
-      ?.closest('[data-slot="card"]');
-
-    if (!topHoldersCard) return;
-
-    const rows = [...topHoldersCard.querySelectorAll('[data-slot="badge"]')];
-
-    const percents = rows
-      .map(b => parseFloat(b.textContent.replace("%", "")))
-      .filter(n => !isNaN(n))
-      .slice(0, 3);
-
-    const owner = percents[0] ?? 0;
-    const third = percents[2] ?? 0;
-
-    let points = 0;
-    const reasons = [];
-
-    /* -------- Owner check -------- */
-    const ownerPts = score(owner);
-    points += ownerPts;
-    reasons.push(`Owner owns ${owner}% → ${ownerPts} pts`);
-
-    /* -------- Top 3 check (reduced scale) -------- */
-    percents.forEach((p, i) => {
-      if (i === 0) return;
-      const s = score(p, 0.25);
-      if (s !== 0) {
-        points += s;
-        reasons.push(`Top holder #${i + 1} owns ${p}% → ${s} pts`);
-      }
-    });
-
-    /* -------- Imbalance override -------- */
-    if (owner >= 80 && third <= 1) {
-      points = 0;
-      reasons.push(
-        "Massive imbalance: owner dominates supply → good signals discarded"
-      );
-    }
-
-    /* -------- Inject into Trade LOCK card -------- */
-    const tradeLockCard = [...document.querySelectorAll('[data-slot="card-title"]')]
-      .find(e => e.textContent.includes("Trade LOCK"))
-      ?.closest('[data-slot="card"]');
-
-    if (!tradeLockCard) return;
-
-    const box = document.createElement("div");
-    box.style.cssText = `
+    const panel = document.createElement("div");
+    panel.setAttribute(PROTECT_ATTR, "true");
+    panel.style.cssText = `
       margin-top: 12px;
-      padding: 10px;
+      padding: 12px;
       border-radius: 6px;
-      background: rgba(0,0,0,0.05);
-      font-family: monospace;
-      font-size: 12px;
+      background: #f8f8f8;
+      color: #111;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
       user-select: text;
+      white-space: pre-wrap;
     `;
+    panel.textContent = text;
 
-    box.innerHTML = `
-      <b>Coin Risk Analysis</b><br><br>
-      <b>Creator:</b> ${creatorName} (${creatorUser})<br>
-      <b>Risk Points:</b> ${points.toFixed(2)}<br>
-      <b>Risk Level:</b> ${riskLabel(points)}<br><br>
-      <b>Reasons:</b><br>
-      ${reasons.map(r => "• " + r).join("<br>")}
-    `;
-
-    tradeLockCard.querySelector('[data-slot="card-content"]')
-      ?.appendChild(box);
+    tradeCard.querySelector('[data-slot="card-content"]')
+      ?.appendChild(panel);
   }
 
-  run().catch(console.error);
+  function run() {
+    const card = findTopHoldersCard();
+    if (!card) return;
+
+    const holders = [...card.querySelectorAll(".space-y-3 > div")];
+
+    if (holders.length === 0) return;
+
+    const parsed = holders.map(h => {
+      const name = h.querySelector("p.font-medium")?.textContent ?? "Unknown";
+      const user = h.querySelector("p.text-xs")?.textContent ?? "";
+      const pctText = h.querySelector('[data-slot="badge"]')?.textContent ?? "0%";
+      return {
+        name,
+        user,
+        pct: parsePercent(pctText)
+      };
+    });
+
+    const creator = parsed[0];
+    const top3 = parsed.slice(1, 4).map(h => h.pct);
+
+    const { points, reasons } = calculateRisk(creator.pct, top3);
+    const label = riskLabel(points);
+
+    const output =
+`Coin Risk Analysis
+
+Creator: ${creator.name} (${creator.user})
+Risk Points: ${points}
+Risk Level: ${label}
+
+Reasons:
+• ${reasons.join("\n• ")}`;
+
+    insertPanel(output);
+  }
+
+  setTimeout(run, 1500);
 })();
