@@ -1,78 +1,89 @@
-// this script is made using ai
+// this script is made using AI
+
 (() => {
+  // Only run once
   if (window.__RISK_SCRIPT_RAN__) return;
   window.__RISK_SCRIPT_RAN__ = true;
 
-  function ownerRisk(percent) {
-    if (percent <= 20) return -4;
-    if (percent <= 40) return -2;
-    if (percent <= 60) return 0;
-    if (percent <= 80) return 5;
-    return 10;
+  function getCoinData() {
+    // Example: adapt to your site structure
+    const creatorEl = document.querySelector('[data-slot="creator"]');
+    const ownerEl = document.querySelector('[data-slot="owner"]');
+    const holdersEls = document.querySelectorAll('[data-slot="top-holder"]');
+
+    const creator = creatorEl?.textContent.trim() || "Unknown";
+    const ownerName = ownerEl?.textContent.trim() || "Unknown";
+
+    const owners = [];
+    owners.push({ name: ownerName, percent: parseFloat(ownerEl?.dataset.percent || "0") });
+
+    holdersEls.forEach((h) => {
+      const name = h.dataset.name;
+      const percent = parseFloat(h.dataset.percent || "0");
+      owners.push({ name, percent });
+    });
+
+    return { creator, owners };
   }
 
-  function holderRisk(percent) {
-    if (percent <= 20) return -0.5;
-    if (percent <= 40) return -0.25;
-    if (percent <= 60) return 0;
-    if (percent <= 80) return 2.5;
-    return 5;
-  }
+  function calculateRisk(owners) {
+    const owner = owners[0];
+    let points = 0;
+    let reasons = [];
 
-  function getRiskLevel(points) {
-    if (points >= 6) return "RISKY";
-    if (points >= 2) return "LOW RISK";
-    if (points > 0) return "MODERATE RISK";
-    return "NO RISK";
-  }
+    // Owner risk
+    if (owner.percent <= 20) points -= 4;
+    else if (owner.percent <= 40) points -= 2;
+    else if (owner.percent <= 60) points += 0;
+    else if (owner.percent <= 80) points += 5;
+    else points += 10;
 
-  function insertRiskCard(ownerName, ownerPercent, topHolders) {
-    const buyBtn = document.querySelector('button[data-slot="button"]:not([disabled])');
-    if (!buyBtn) return;
+    reasons.push(`Owner owns ${owner.percent}% → ${owner.percent > 80 ? "+10 pts" : owner.percent > 60 ? "+5 pts" : owner.percent <= 20 ? "-4 pts" : owner.percent <= 40 ? "-2 pts" : "0 pts"}`);
 
-    let riskPoints = ownerRisk(ownerPercent);
-    const reasons = [`Owner owns ${ownerPercent}% → +${ownerRisk(ownerPercent)} pts`];
+    // Top 3 holders (excluding owner if already top)
+    const topHolders = owners.slice(1, 4);
+    topHolders.forEach((h, i) => {
+      if (h.percent <= 20) points -= 0.5;
+      else if (h.percent <= 40) points -= 0.25;
+      else points += 0;
 
-    // Filter out the owner if they appear in top holders
-    const filteredHolders = topHolders.map((h, i) => {
-      if (h.name === ownerName) {
-        reasons.push(`Top holder #${i + 1} is the owner`);
-        return null;
-      }
-      const pts = holderRisk(h.percent);
-      reasons.push(`Top holder #${i + 1} owns ${h.percent}% → ${pts >= 0 ? "+" : ""}${pts} pts`);
-      riskPoints += pts;
-      return h;
-    }).filter(Boolean);
+      reasons.push(`${h.name ? `Top holder #${i+1} owns ${h.percent}%` : `Top holder #${i+1} unknown`} → ${h.percent <= 20 ? "-0.5 pts" : h.percent <= 40 ? "-0.25 pts" : "0 pts"}`);
+    });
 
-    const maxOther = filteredHolders.length ? Math.max(...filteredHolders.map(h => h.percent)) : 0;
-    if (ownerPercent - maxOther > 50) {
-      // Disregard all “good” points if massive imbalance
-      for (let i = 1; i < reasons.length; i++) {
-        reasons[i] = reasons[i].replace(/→ .* pts/, "→ 0 pts");
-      }
-      riskPoints = ownerRisk(ownerPercent);
+    // Massive imbalance check
+    const thirdPercent = topHolders[1]?.percent || 0;
+    if (owner.percent - thirdPercent > 50) {
+      // Discard all negative points
+      reasons = reasons.map(r => r.replace(/-.*pts/, "0 pts"));
     }
 
-    const riskLevel = getRiskLevel(riskPoints);
+    const riskLevel = points >= 6 ? "RISKY" : points >= 2 ? "LOW RISK" : "NO RISK";
+
+    return { points, riskLevel, reasons };
+  }
+
+  function renderRiskCard(data) {
+    const { creator, owners } = data;
+    const { points, riskLevel, reasons } = calculateRisk(owners);
 
     const card = document.createElement("div");
-    card.dataset.notallyhall = "";
+    card.setAttribute("data-notallyhall", "");
     card.style.cssText = `
-      margin-bottom: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      background: rgb(15,15,20);
-      color: rgb(234,234,240);
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      border: 1px solid rgb(42,42,53);
+      margin-bottom: 12px; 
+      padding: 12px; 
+      border-radius: 10px; 
+      background: rgb(15, 15, 20); 
+      color: rgb(234, 234, 240); 
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif; 
+      border: 1px solid rgb(42, 42, 53); 
       user-select: text;
     `;
+
     card.innerHTML = `
       <div style="font-weight:600;font-size:14px;margin-bottom:6px;">Coin Risk Analysis</div>
-      <div style="font-size:13px;opacity:.9;margin-bottom:6px;">Creator: ${ownerName}</div>
+      <div style="font-size:13px;opacity:.9;margin-bottom:6px;">Creator: ${creator}</div>
       <div style="font-size:13px;margin-bottom:6px;">
-        <b>Risk Points:</b> ${riskPoints}<br>
+        <b>Risk Points:</b> ${points}<br>
         <b>Risk Level:</b> ${riskLevel}
       </div>
       <div style="font-size:12px;opacity:.85;">
@@ -83,47 +94,20 @@
       </div>
     `;
 
-    buyBtn.parentElement.insertBefore(card, buyBtn);
+    // Insert above the Buy button
+    const buyBtn = document.querySelector('button[data-slot="button"][type="button"]');
+    if (buyBtn) buyBtn.parentElement.insertBefore(card, buyBtn);
   }
 
-  function getCoinData() {
-    // Grab the creator info
-    let ownerName = "Unknown";
-    const creatorLabel = [...document.querySelectorAll("div, span")].find(el => /Created by/i.test(el.textContent));
-    if (creatorLabel) {
-      const nextEl = creatorLabel.nextElementSibling;
-      if (nextEl) ownerName = nextEl.textContent.trim();
-    }
-
-    // Get top holders from the page
-    const topHolderEls = document.querySelectorAll(".top-holder");
-    const topHolders = [...topHolderEls].slice(0, 3).map(el => {
-      const name = el.querySelector(".name")?.textContent.trim() || "Unknown";
-      const percentText = el.querySelector(".percent")?.textContent.trim() || "0%";
-      const percent = parseFloat(percentText.replace("%", "")) || 0;
-      return { name, percent };
-    });
-
-    // If owner not in top holders, assume 100% ownership
-    let ownerPercent = 0;
-    const ownerEntry = topHolders.find(h => h.name === ownerName);
-    if (ownerEntry) {
-      ownerPercent = ownerEntry.percent;
-    } else {
-      ownerPercent = 100;
-    }
-
-    return { ownerName, ownerPercent, topHolders };
+  function run() {
+    const data = getCoinData();
+    renderRiskCard(data);
   }
 
-  const observer = new MutationObserver((mutations, obs) => {
-    const buyBtn = document.querySelector('button[data-slot="button"]:not([disabled])');
-    if (buyBtn) {
-      const { ownerName, ownerPercent, topHolders } = getCoinData();
-      insertRiskCard(ownerName, ownerPercent, topHolders);
-      obs.disconnect();
-    }
-  });
-
-  observer.observe(document.body, { childList: true, subtree: true });
+  // Wait until page is loaded
+  if (document.readyState === "complete") {
+    run();
+  } else {
+    window.addEventListener("load", run);
+  }
 })();
