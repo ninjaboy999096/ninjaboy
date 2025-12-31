@@ -14,7 +14,7 @@
     else if (owner.pct <= 80) { points += 5; reasons.push(`Owner owns ${owner.pct}% → +5 pts`); }
     else { points += 10; reasons.push(`Owner owns ${owner.pct}% → +10 pts`); }
 
-    // Top 3 holders (skip owner if already counted)
+    // Top 3 holders (skip owner)
     holders.slice(0,3).forEach((h,i) => {
       if (h.name === owner.name) return;
       if (h.pct <= 20) { points -= 0.5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → -0.5 pts`); }
@@ -24,7 +24,7 @@
       else { points += 5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → +5 pts`); }
     });
 
-    // Imbalance
+    // Massive imbalance
     const topPct = holders[0]?.pct || 0;
     const thirdPct = holders[2]?.pct || 0;
     if (topPct - thirdPct > 80) {
@@ -40,7 +40,7 @@
   function renderRisk(cardEl, owner, holders) {
     if (!cardEl) return;
 
-    // Avoid inserting twice
+    // Don't insert twice
     if (cardEl.querySelector('[data-notallyhall]')) return;
 
     const content = cardEl.querySelector('[data-slot="card-content"]');
@@ -63,7 +63,9 @@
 
     box.innerHTML = `
       <div style="font-weight:600;font-size:14px;margin-bottom:6px;">Coin Risk Analysis</div>
-      <div style="font-size:13px;opacity:.9;margin-bottom:6px;">Creator: ${owner.name} (@${owner.handle})</div>
+      <div style="font-size:13px;opacity:.9;margin-bottom:6px;">
+        Creator: ${owner.name} (@${owner.handle})
+      </div>
       <div style="font-size:13px;margin-bottom:6px;">
         <b>Risk Points:</b> ${points}<br>
         <b>Risk Level:</b> ${level}
@@ -76,19 +78,18 @@
       </div>
     `;
 
-    // insert above first button
-    const firstButton = content.querySelector('button');
-    if (firstButton) content.insertBefore(box, firstButton);
+    // Insert **above the Buy button**
+    const buyBtn = content.querySelector('button');
+    if (buyBtn) content.insertBefore(box, buyBtn);
     else content.appendChild(box);
   }
 
-  // Use MutationObserver on the card container instead of body
+  // MutationObserver to detect the card when rendered
   const observer = new MutationObserver(() => {
     const card = document.querySelector('[data-slot="card"]');
     if (card && card.querySelector('[data-slot="card-content"]')) {
       observer.disconnect();
 
-      // Example owner + holders
       const owner = { name: "AssassiN", handle: "assassin", pct: 100 };
       const topHolders = [
         { name: "AssassiN", pct: 100 },
