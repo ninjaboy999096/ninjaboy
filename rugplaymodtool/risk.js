@@ -74,7 +74,7 @@
     const box = document.createElement("div");
     box.setAttribute("data-notallyhall", "");
     box.style.cssText = `
-      margin-top: 12px;
+      margin-bottom: 12px;
       padding: 12px;
       border-radius: 10px;
       background: rgb(15,15,20);
@@ -102,7 +102,13 @@
       </div>
     `;
 
-    cardEl.appendChild(box);
+    // Insert **above the Buy button**
+    const buyButton = cardEl.querySelector('button[type="button"]');
+    if (buyButton) {
+      buyButton.parentElement.insertBefore(box, buyButton);
+    } else {
+      cardEl.appendChild(box); // fallback
+    }
   }
 
   // --- EXAMPLE USAGE ---
