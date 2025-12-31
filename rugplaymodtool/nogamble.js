@@ -1,55 +1,39 @@
-// Gambling Block Mod
+// this is made by ai!
 (() => {
-  const GAMBLING_PATH = "/gambling";
-
-  /* ---------- REMOVE GAMBLING SIDEBAR BUTTON ---------- */
-  function removeGamblingButton() {
-    document.querySelectorAll('a[href="/gambling"]').forEach(a => a.remove());
+  function removeCoinflipCard() {
+    document.querySelectorAll('div[data-slot="card"]').forEach(card => {
+      const title = card.querySelector('[data-slot="card-title"]');
+      if (title && title.textContent.trim() === "Coinflip") {
+        card.remove();
+      }
+    });
   }
 
-  /* ---------- SHOW NO GAMBLING MESSAGE ---------- */
-  function showNoGambling() {
-    if (document.getElementById("no-gambling-banner")) return;
+  function removeGameSelectorRow() {
+    document.querySelectorAll('div.flex.justify-center.gap-4').forEach(row => {
+      const buttons = [...row.querySelectorAll('button')]
+        .map(b => b.textContent.trim());
 
-    const banner = document.createElement("div");
-    banner.id = "no-gambling-banner";
-    banner.textContent = "no gambling";
-
-    banner.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 999999;
-      background: black;
-      color: white;
-      font-size: 48px;
-      font-weight: bold;
-      padding: 30px 40px;
-      border-radius: 16px;
-      border: 3px solid white;
-      text-align: center;
-      pointer-events: none;
-    `;
-
-    document.body.appendChild(banner);
+      // Match the Coinflip / Slots / Mines / Dice row
+      const targets = ["Coinflip", "Slots", "Mines", "Dice"];
+      if (targets.every(t => buttons.includes(t))) {
+        row.remove();
+      }
+    });
   }
 
-  /* ---------- MAIN LOOP ---------- */
-  function tick() {
-    removeGamblingButton();
-
-    if (location.pathname.startsWith(GAMBLING_PATH)) {
-      showNoGambling();
-    }
+  function run() {
+    removeCoinflipCard();
+    removeGameSelectorRow();
   }
 
   // Initial run
-  tick();
+  run();
 
-  // Catch late-loaded UI
-  setTimeout(tick, 1000);
-
-  // Keep enforcing (SPA-safe)
-  setInterval(tick, 1000);
+  // Handle SPA rerenders
+  const observer = new MutationObserver(run);
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
 })();
