@@ -1,77 +1,125 @@
-// this script is AI
+// this script is by AI
 
 (() => {
-  if (window.__RISK_SCRIPT_RAN__) return;
-  window.__RISK_SCRIPT_RAN__ = true;
+  // CONFIG
+  const BUY_BUTTON_SELECTOR = "div[data-slot='card-content'] button[type='button']:not([disabled])";
 
-  function ownerRisk(percent) {
-    if (percent <= 20) return -4;
-    if (percent <= 40) return -2;
-    if (percent <= 60) return 0;
-    if (percent <= 80) return 5;
-    return 10;
+  // UTILITY: get visible text node ignoring scripts
+  function getVisibleText(el) {
+    if (!el || el.offsetParent === null) return "";
+    return el.textContent.trim();
   }
 
-  function holderRisk(percent) {
-    if (percent <= 20) return -0.5;
-    if (percent <= 40) return -0.25;
-    if (percent <= 60) return 0;
-    if (percent <= 80) return 2.5;
-    return 5;
+  // GET OWNER NAME
+  function getOwnerName() {
+    // search for elements containing "Created by"
+    const createdByEl = [...document.querySelectorAll("div, span")]
+      .find(el => /Created by/i.test(el.textContent) && el.offsetParent !== null);
+    if (!createdByEl) return "Unknown";
+
+    let next = createdByEl.nextElementSibling;
+    while (next && (!getVisibleText(next))) next = next.nextElementSibling;
+    return getVisibleText(next) || "Unknown";
   }
 
-  function getRiskLevel(points) {
-    if (points >= 6) return "RISKY";
-    if (points >= 2) return "LOW RISK";
-    if (points > 0) return "MODERATE RISK";
-    return "NO RISK";
-  }
-
-  function insertRiskCard(ownerName, ownerPercent, topHolders) {
-    const buyBtn = document.querySelector('button[data-slot="button"]:not([disabled])');
-    if (!buyBtn) return;
-
-    let riskPoints = ownerRisk(ownerPercent);
-    const reasons = [`Owner owns ${ownerPercent}% → +${ownerRisk(ownerPercent)} pts`];
-
-    // Filter out the owner if they appear in top holders
-    const filteredHolders = topHolders.filter(h => h.name !== ownerName);
-
-    filteredHolders.forEach((h, i) => {
-      const pts = holderRisk(h.percent);
-      reasons.push(`Top holder #${i+1} owns ${h.percent}% → ${pts >= 0 ? "+" : ""}${pts} pts`);
-      riskPoints += pts;
-    });
-
-    const maxOther = filteredHolders.length ? Math.max(...filteredHolders.map(h => h.percent)) : 0;
-    if (ownerPercent - maxOther > 50) {
-      // Disregard all “good” points if massive imbalance
-      for (let i = 1; i < reasons.length; i++) {
-        reasons[i] = reasons[i].replace(/→ .* pts/, "→ 0 pts");
+  // GET HOLDERS
+  function getTopHolders() {
+    // search for elements that look like holders (could adjust for your site)
+    const holders = [];
+    [...document.querySelectorAll("div, span")].forEach(el => {
+      const text = getVisibleText(el);
+      const percentMatch = text.match(/([\d.]+)%/);
+      if (percentMatch) {
+        const percent = parseFloat(percentMatch[1]);
+        holders.push({ name: text, percent });
       }
-      riskPoints = ownerRisk(ownerPercent);
+    });
+    // sort descending
+    holders.sort((a, b) => b.percent - a.percent);
+    return holders.slice(0, 3);
+  }
+
+  // CALCULATE POINTS
+  function calcRiskPoints(ownerPercent, topHolders) {
+    let points = 0;
+    let reasons = [];
+
+    // OWNER SCORE
+    if (ownerPercent >= 81) {
+      points += 10;
+      reasons.push(`Owner owns ${ownerPercent}% → +10 pts`);
+    } else if (ownerPercent >= 61) {
+      points += 5;
+      reasons.push(`Owner owns ${ownerPercent}% → +5 pts`);
+    } else if (ownerPercent >= 41) {
+      reasons.push(`Owner owns ${ownerPercent}% → 0 pts`);
+    } else if (ownerPercent >= 21) {
+      points -= 2;
+      reasons.push(`Owner owns ${ownerPercent}% → -2 pts`);
+    } else {
+      points -= 4;
+      reasons.push(`Owner owns ${ownerPercent}% → -4 pts`);
     }
 
-    const riskLevel = getRiskLevel(riskPoints);
+    // TOP 3 HOLDERS SCORE
+    topHolders.forEach((h, idx) => {
+      if (h.name === ownerName) {
+        reasons.push(`Top holder #${idx + 1} is the owner`);
+      } else {
+        let pt = 0;
+        if (h.percent >= 81) pt = 5;
+        else if (h.percent >= 61) pt = 2;
+        else if (h.percent >= 41) pt = 0;
+        else if (h.percent >= 21) pt = -0.5;
+        else pt = -1;
+
+        reasons.push(`Top holder #${idx + 1} owns ${h.percent}% → ${pt} pts`);
+        points += pt;
+      }
+    });
+
+    // Check for massive imbalance
+    if (ownerPercent >= 90 && topHolders.every(h => h.name !== ownerName && h.percent <= 1)) {
+      reasons = reasons.map(r => r.replace(/→ [-+.\d]+ pts/, "→ 0 pts"));
+      points = 10; // risk points stays max
+      reasons.push("Massive imbalance: owner dominates supply → good signals discarded");
+    }
+
+    // Determine risk level
+    let level = "NO RISK";
+    if (points >= 6) level = "RISKY";
+    else if (points >= 2) level = "LOW RISK";
+    else if (points >= 0) level = "MODERATE";
+
+    return { points, level, reasons };
+  }
+
+  // RENDER CARD ABOVE BUY BUTTON
+  function renderRiskCard() {
+    const buyBtn = document.querySelector(BUY_BUTTON_SELECTOR);
+    if (!buyBtn) return;
 
     const card = document.createElement("div");
-    card.dataset.notallyhall = "";
-    card.style.cssText = `
-      margin-bottom: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      background: rgb(15,15,20);
-      color: rgb(234,234,240);
+    card.setAttribute("data-notallyhall", "");
+    card.style = `
+      margin-bottom: 12px; padding: 12px; border-radius: 10px;
+      background: rgb(15,15,20); color: rgb(234,234,240);
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      border: 1px solid rgb(42,42,53);
-      user-select: text;
+      border: 1px solid rgb(42,42,53); user-select: text;
     `;
+
+    const ownerPercent = parseFloat(prompt("Enter owner % (0-100)")) || 0;
+    const topHolders = getTopHolders();
+    const { points, level, reasons } = calcRiskPoints(ownerPercent, topHolders);
+
+    const ownerNameDisplay = getOwnerName();
+
     card.innerHTML = `
       <div style="font-weight:600;font-size:14px;margin-bottom:6px;">Coin Risk Analysis</div>
-      <div style="font-size:13px;opacity:.9;margin-bottom:6px;">Creator: ${ownerName}</div>
+      <div style="font-size:13px;opacity:.9;margin-bottom:6px;">Creator: ${ownerNameDisplay}</div>
       <div style="font-size:13px;margin-bottom:6px;">
-        <b>Risk Points:</b> ${riskPoints}<br>
-        <b>Risk Level:</b> ${riskLevel}
+        <b>Risk Points:</b> ${points}<br>
+        <b>Risk Level:</b> ${level}
       </div>
       <div style="font-size:12px;opacity:.85;">
         <b>Reasons:</b>
@@ -81,46 +129,10 @@
       </div>
     `;
 
-    buyBtn.parentElement.insertBefore(card, buyBtn);
+    buyBtn.parentNode.insertBefore(card, buyBtn);
   }
 
-  function getCoinData() {
-    // Grab the creator info
-    const creatorEl = [...document.querySelectorAll("div, span")]
-      .find(el => /Created by/i.test(el.textContent));
-    let ownerName = "Unknown";
-    if (creatorEl) {
-      ownerName = creatorEl.nextElementSibling?.textContent.trim() || "Unknown";
-    }
-
-    // Get top holders from the page
-    const topHolderEls = document.querySelectorAll(".top-holder");
-    const topHolders = [...topHolderEls].slice(0, 3).map(el => {
-      const name = el.querySelector(".name")?.textContent.trim() || "Unknown";
-      const percentText = el.querySelector(".percent")?.textContent.trim() || "0%";
-      const percent = parseFloat(percentText.replace("%", "")) || 0;
-      return { name, percent };
-    });
-
-    // If owner is not listed in top holders, assume 100% ownership
-    let ownerPercent = 0;
-    if (topHolders.some(h => h.name === ownerName)) {
-      ownerPercent = topHolders.find(h => h.name === ownerName).percent;
-    } else {
-      ownerPercent = 100;
-    }
-
-    return { ownerName, ownerPercent, topHolders };
-  }
-
-  const observer = new MutationObserver((mutations, obs) => {
-    const buyBtn = document.querySelector('button[data-slot="button"]:not([disabled])');
-    if (buyBtn) {
-      const { ownerName, ownerPercent, topHolders } = getCoinData();
-      insertRiskCard(ownerName, ownerPercent, topHolders);
-      obs.disconnect();
-    }
-  });
-
-  observer.observe(document.body, { childList: true, subtree: true });
+  // Run on page load
+  if (document.readyState === "complete") renderRiskCard();
+  else window.addEventListener("load", renderRiskCard);
 })();
