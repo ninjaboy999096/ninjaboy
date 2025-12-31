@@ -1,127 +1,146 @@
 // this script is made by ai
-
-(function () {
-  "use strict";
-
-  const PROTECT_ATTR = "data-notallyhall";
-
-  function findTopHoldersCard() {
-    return [...document.querySelectorAll('[data-slot="card"]')]
-      .find(card => card.textContent.includes("Top Holders"));
-  }
+(() => {
+  // prevent double-run
+  if (window.__COIN_RISK_RAN__) return;
+  window.__COIN_RISK_RAN__ = true;
 
   function parsePercent(text) {
     const n = parseFloat(text.replace("%", ""));
     return isNaN(n) ? 0 : n;
   }
 
-  function calculateRisk(ownerPct, top3) {
-    let points = 0;
-    const reasons = [];
-
-    function ownerRule(pct) {
-      if (pct <= 20) return -4;
-      if (pct <= 40) return -2;
-      if (pct <= 60) return 0;
-      if (pct <= 80) return 5;
-      return 10;
-    }
-
-    const ownerPts = ownerRule(ownerPct);
-    points += ownerPts;
-    reasons.push(`Owner owns ${ownerPct}% → ${ownerPts} pts`);
-
-    top3.forEach((pct, i) => {
-      let p = 0;
-      if (pct <= 20) p = -1;
-      else if (pct <= 40) p = -0.5;
-      else if (pct <= 60) p = 0;
-      else if (pct <= 80) p = 2.5;
-      else p = 5;
-
-      points += p;
-      reasons.push(`Top holder #${i + 1} owns ${pct}% → ${p} pts`);
-    });
-
-    // imbalance check
-    if (ownerPct >= 90 && top3.every(p => p < 1)) {
-      reasons.push("Massive imbalance: owner dominates supply → all positives discarded");
-      points = Math.max(points, 6);
-    }
-
-    return { points: Math.round(points * 100) / 100, reasons };
-  }
-
-  function riskLabel(points) {
-    if (points >= 6) return "RISKY";
-    if (points >= 4) return "PRETTY RISKY";
-    if (points >= 2) return "LOW RISK";
-    return "NO RISK";
-  }
-
-  function insertPanel(text) {
-    const tradeCard = [...document.querySelectorAll('[data-slot="card"]')]
-      .find(c => c.textContent.includes("Trade LOCK"));
-
-    if (!tradeCard) return;
-
-    const panel = document.createElement("div");
-    panel.setAttribute(PROTECT_ATTR, "true");
-    panel.style.cssText = `
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 6px;
-      background: #f8f8f8;
-      color: #111;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 13px;
-      line-height: 1.4;
-      user-select: text;
-      white-space: pre-wrap;
-    `;
-    panel.textContent = text;
-
-    tradeCard.querySelector('[data-slot="card-content"]')
-      ?.appendChild(panel);
+  function riskFromPercent(p) {
+    if (p <= 20) return { pts: -4, label: "low ownership" };
+    if (p <= 40) return { pts: -2, label: "moderate ownership" };
+    if (p <= 60) return { pts: 0, label: "balanced ownership" };
+    if (p <= 80) return { pts: 5, label: "high ownership" };
+    return { pts: 10, label: "extreme ownership" };
   }
 
   function run() {
-    const card = findTopHoldersCard();
-    if (!card) return;
+    const holderRows = Array.from(
+      document.querySelectorAll('[data-slot="card"]')
+    ).find(c =>
+      c.textContent.includes("Top Holders")
+    );
 
-    const holders = [...card.querySelectorAll(".space-y-3 > div")];
+    if (!holderRows) return;
 
-    if (holders.length === 0) return;
+    const holders = Array.from(
+      holderRows.querySelectorAll(".flex.items-center.gap-2")
+    );
 
-    const parsed = holders.map(h => {
-      const name = h.querySelector("p.font-medium")?.textContent ?? "Unknown";
-      const user = h.querySelector("p.text-xs")?.textContent ?? "";
-      const pctText = h.querySelector('[data-slot="badge"]')?.textContent ?? "0%";
+    if (!holders.length) return;
+
+    const parsed = holders.map(row => {
+      const name =
+        row.querySelector("p.text-sm")?.textContent?.trim() ?? "Unknown";
+      const user =
+        row.querySelector("p.text-xs")?.textContent?.trim() ?? "";
+      const percentText =
+        row.querySelector('[data-slot="badge"]')?.textContent ?? "0%";
+
       return {
         name,
         user,
-        pct: parsePercent(pctText)
+        percent: parsePercent(percentText)
       };
     });
 
     const creator = parsed[0];
-    const top3 = parsed.slice(1, 4).map(h => h.pct);
+    const top3 = parsed.slice(0, 3);
 
-    const { points, reasons } = calculateRisk(creator.pct, top3);
-    const label = riskLabel(points);
+    let riskPoints = 0;
+    const reasons = [];
 
-    const output =
-`Coin Risk Analysis
+    // ---- creator ownership ----
+    const ownerRisk = riskFromPercent(creator.percent);
+    riskPoints += ownerRisk.pts;
+    reasons.push(
+      `Owner owns ${creator.percent}% → ${ownerRisk.pts} pts`
+    );
 
-Creator: ${creator.name} (${creator.user})
-Risk Points: ${points}
-Risk Level: ${label}
+    // ---- top 3 holders check (reduced weight) ----
+    top3.forEach((h, i) => {
+      if (i === 0) return;
+      if (h.percent <= 20) {
+        riskPoints -= 0.5;
+        reasons.push(
+          `Top holder #${i + 1} owns ${h.percent}% → -0.5 pts`
+        );
+      } else if (h.percent >= 81) {
+        riskPoints += 5;
+        reasons.push(
+          `Top holder #${i + 1} owns ${h.percent}% → +5 pts`
+        );
+      }
+    });
 
-Reasons:
-• ${reasons.join("\n• ")}`;
+    // ---- imbalance override ----
+    if (creator.percent >= 90 && parsed[1]?.percent === 0) {
+      riskPoints = Math.max(riskPoints, 10);
+      reasons.push(
+        "Massive imbalance: owner dominates supply → positives discarded"
+      );
+    }
 
-    insertPanel(output);
+    // ---- clamp ----
+    riskPoints = Math.round(riskPoints * 10) / 10;
+
+    let riskLevel = "NO RISK";
+    if (riskPoints >= 6) riskLevel = "RISKY";
+    else if (riskPoints >= 4) riskLevel = "PRETTY RISKY";
+    else if (riskPoints >= 2) riskLevel = "LOW RISK";
+
+    // ---- insert UI ----
+    const targetCard = Array.from(
+      document.querySelectorAll('[data-slot="card"]')
+    ).find(c => c.textContent.includes("Trade LOCK"));
+
+    if (!targetCard) return;
+
+    const box = document.createElement("div");
+    box.setAttribute("data-notallyhall", "");
+    box.style.cssText = `
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #0f0f14;
+      color: #eaeaf0;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      border: 1px solid #2a2a35;
+      user-select: text;
+    `;
+
+    box.innerHTML = `
+      <div style="font-weight:600;font-size:14px;margin-bottom:6px;">
+        Coin Risk Analysis
+      </div>
+
+      <div style="font-size:13px;opacity:.9;margin-bottom:6px;">
+        Creator: ${creator.name} (${creator.user})
+      </div>
+
+      <div style="font-size:13px;margin-bottom:6px;">
+        <b>Risk Points:</b> ${riskPoints}
+        <br>
+        <b>Risk Level:</b> ${riskLevel}
+      </div>
+
+      <div style="font-size:12px;opacity:.85;">
+        <b>Reasons:</b>
+        <ul style="margin:6px 0 0 16px;padding:0;">
+          ${reasons.map(r => `<li>${r}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+
+    targetCard.appendChild(box);
   }
 
-  setTimeout(run, 1500);
+  if (document.readyState === "complete") {
+    setTimeout(run, 800);
+  } else {
+    window.addEventListener("load", () => setTimeout(run, 800));
+  }
 })();
