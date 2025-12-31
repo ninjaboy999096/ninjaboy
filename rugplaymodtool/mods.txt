@@ -1,3 +1,4 @@
 https://ninjaboy999096.vercel.app/rugplaymodtool/tallyhall.js
 https://ninjaboy999096.vercel.app/rugplaymodtool/comic.js
 https://ninjaboy999096.vercel.app/rugplaymodtool/nogamble.js
+https://ninjaboy999096.vercel.app/rugplaymodtool/risk.js
