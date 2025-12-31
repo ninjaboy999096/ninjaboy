@@ -21,7 +21,7 @@
     holders.slice(0, 3).forEach((h, i) => {
       if (h.name === owner.name) {
         holderPoints.push(0);
-        reasons.push(`Top holder #${i + 1} owns ${h.pct}% → 0 pts`);
+        reasons.push(`Top holder #${i + 1} is the owner`);
         return;
       }
       let p = 0;
