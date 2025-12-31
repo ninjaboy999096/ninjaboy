@@ -7,21 +7,21 @@
     let points = 0;
     const reasons = [];
 
-    // Owner check
+    // Owner risk
     if (owner.pct <= 20) { points -= 4; reasons.push(`Owner owns ${owner.pct}% → -4 pts`); }
     else if (owner.pct <= 40) { points -= 2; reasons.push(`Owner owns ${owner.pct}% → -2 pts`); }
     else if (owner.pct <= 60) { points += 0; reasons.push(`Owner owns ${owner.pct}% → 0 pts`); }
     else if (owner.pct <= 80) { points += 5; reasons.push(`Owner owns ${owner.pct}% → +5 pts`); }
-    else if (owner.pct <= 100) { points += 10; reasons.push(`Owner owns ${owner.pct}% → +10 pts`); }
+    else { points += 10; reasons.push(`Owner owns ${owner.pct}% → +10 pts`); }
 
-    // Top 3 holders (skipping owner)
-    holders.slice(0, 3).forEach((h, i) => {
+    // Top 3 holders (skip owner if already counted)
+    holders.slice(0,3).forEach((h,i) => {
       if (h.name === owner.name) return;
       if (h.pct <= 20) { points -= 0.5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → -0.5 pts`); }
       else if (h.pct <= 40) { points -= 0.25; reasons.push(`Top holder #${i+1} owns ${h.pct}% → -0.25 pts`); }
       else if (h.pct <= 60) { points += 0; reasons.push(`Top holder #${i+1} owns ${h.pct}% → 0 pts`); }
       else if (h.pct <= 80) { points += 2.5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → +2.5 pts`); }
-      else if (h.pct <= 100) { points += 5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → +5 pts`); }
+      else { points += 5; reasons.push(`Top holder #${i+1} owns ${h.pct}% → +5 pts`); }
     });
 
     // Imbalance
@@ -39,8 +39,12 @@
 
   function renderRisk(cardEl, owner, holders) {
     if (!cardEl) return;
-    const content = cardEl.querySelector('[data-slot="card-content"] .space-y-3');
-    if (!content || content.querySelector('[data-notallyhall]')) return;
+
+    // Avoid inserting twice
+    if (cardEl.querySelector('[data-notallyhall]')) return;
+
+    const content = cardEl.querySelector('[data-slot="card-content"]');
+    if (!content) return;
 
     const { points, level, reasons } = calculateRisk(owner, holders);
 
@@ -56,6 +60,7 @@
       border: 1px solid rgb(42,42,53);
       user-select: text;
     `;
+
     box.innerHTML = `
       <div style="font-weight:600;font-size:14px;margin-bottom:6px;">Coin Risk Analysis</div>
       <div style="font-size:13px;opacity:.9;margin-bottom:6px;">Creator: ${owner.name} (@${owner.handle})</div>
@@ -71,24 +76,29 @@
       </div>
     `;
 
-    const buyButton = content.querySelector('button');
-    if (buyButton) content.insertBefore(box, buyButton);
+    // insert above first button
+    const firstButton = content.querySelector('button');
+    if (firstButton) content.insertBefore(box, firstButton);
     else content.appendChild(box);
   }
 
-  // wait for the card to exist using MutationObserver
+  // Use MutationObserver on the card container instead of body
   const observer = new MutationObserver(() => {
     const card = document.querySelector('[data-slot="card"]');
-    if (card) {
+    if (card && card.querySelector('[data-slot="card-content"]')) {
       observer.disconnect();
+
+      // Example owner + holders
       const owner = { name: "AssassiN", handle: "assassin", pct: 100 };
       const topHolders = [
         { name: "AssassiN", pct: 100 },
         { name: "Stonks", pct: 0 },
         { name: "Alonso", pct: 0 },
       ];
+
       renderRisk(card, owner, topHolders);
     }
   });
+
   observer.observe(document.body, { childList: true, subtree: true });
 })();
