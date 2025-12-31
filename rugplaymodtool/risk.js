@@ -1,4 +1,4 @@
-// this script is AI, not by AI
+// this script is made using ai
 (() => {
   if (window.__RISK_SCRIPT_RAN__) return;
   window.__RISK_SCRIPT_RAN__ = true;
