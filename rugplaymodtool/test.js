@@ -1,4 +1,27 @@
 (function () {
+  const style = document.createElement("style");
+  style.textContent = `
+    /* Stretch buy dialog instead of buttons */
+    [data-dialog-content] {
+      max-width: 640px !important;
+      width: 100% !important;
+    }
+
+    /* Let footer wrap cleanly */
+    [data-slot="dialog-footer"] {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Ensure custom controls stay inside */
+    #bts-btn {
+      white-space: nowrap;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+(function () {
   if (window.__buyThenSellInjected) return;
   window.__buyThenSellInjected = true;
 
