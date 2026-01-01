@@ -2,29 +2,26 @@
   if (window.__buyThenSellInjected) return;
   window.__buyThenSellInjected = true;
 
-  const DELAY_MS = 60_000;
+  const DEFAULT_DELAY = 120; // seconds
 
   function getDialog() {
     return document.querySelector('[data-dialog-content]');
   }
 
-  function getCoinSymbol(dialog) {
+  function getCoin(dialog) {
     const title = dialog.querySelector('[data-dialog-title]');
     if (!title) return null;
-
-    // "Buy TESTCOIN12" → TESTCOIN12
-    const match = title.textContent.match(/Buy\s+([A-Z0-9_-]+)/i);
-    return match ? match[1] : null;
+    const m = title.textContent.match(/Buy\s+([A-Z0-9_-]+)/i);
+    return m ? m[1] : null;
   }
 
   function getAmount(dialog) {
-    const input = dialog.querySelector('input#amount');
-    if (!input) return null;
-    const val = Number(input.value);
-    return Number.isFinite(val) && val > 0 ? val : null;
+    const input = dialog.querySelector('#amount');
+    const v = Number(input?.value);
+    return Number.isFinite(v) && v > 0 ? v : null;
   }
 
-  function apiTrade(coin, type, amount) {
+  function trade(coin, type, amount) {
     return fetch(`/api/coin/${coin}/trade`, {
       method: "POST",
       credentials: "include",
@@ -36,83 +33,78 @@
     }).then(r => r.json());
   }
 
-  function insertStatus(dialog) {
-    let status = dialog.querySelector('#buy-sell-status');
-    if (status) return status;
-
-    status = document.createElement('div');
-    status.id = 'buy-sell-status';
-    status.className = 'text-xs text-muted-foreground';
-    status.textContent = 'Idle';
-
-    dialog.querySelector('[data-slot="dialog-footer"]')
-      .prepend(status);
-
-    return status;
-  }
-
-  function insertButton(dialog) {
-    if (dialog.querySelector('#buy-sell-btn')) return;
+  function ensureUI(dialog) {
+    if (dialog.querySelector('#bts-btn')) return;
 
     const footer = dialog.querySelector('[data-slot="dialog-footer"]');
     if (!footer) return;
 
-    const btn = document.createElement('button');
-    btn.id = 'buy-sell-btn';
-    btn.type = 'button';
-    btn.textContent = 'Buy then Sell (60s)';
-    btn.className =
-      'inline-flex shrink-0 items-center justify-center gap-2 ' +
-      'rounded-md text-sm font-medium h-9 px-4 py-2 ' +
-      'bg-background border shadow-xs hover:bg-accent';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center gap-2';
 
-    const status = insertStatus(dialog);
+    // seconds input
+    const secInput = document.createElement('input');
+    secInput.type = 'number';
+    secInput.min = '1';
+    secInput.value = DEFAULT_DELAY;
+    secInput.className =
+      'border-input bg-background shadow-xs h-9 w-20 rounded-md border px-2 text-sm';
+    secInput.title = 'Delay (seconds)';
+
+    // button
+    const btn = document.createElement('button');
+    btn.id = 'bts-btn';
+    btn.type = 'button';
+    btn.textContent = 'Buy then Sell';
+    btn.className =
+      'inline-flex items-center justify-center rounded-md text-sm font-medium ' +
+      'h-9 px-4 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90';
+
+    // status text
+    const status = document.createElement('div');
+    status.className = 'text-xs text-muted-foreground';
+    status.textContent = 'Idle';
 
     btn.onclick = async () => {
-      const coin = getCoinSymbol(dialog);
+      const coin = getCoin(dialog);
       const amount = getAmount(dialog);
+      const delay = Math.max(1, Number(secInput.value) || DEFAULT_DELAY);
 
       if (!coin) {
-        status.textContent = 'Could not detect coin';
+        status.textContent = 'Coin not detected';
         return;
       }
       if (!amount) {
-        status.textContent = 'Enter amount first';
+        status.textContent = 'Enter amount';
         return;
       }
 
       status.textContent = `Buying ${coin}…`;
-
-      const buy = await apiTrade(coin, "BUY", amount);
+      const buy = await trade(coin, "BUY", amount);
       if (!buy?.success) {
         status.textContent = 'BUY failed';
         return;
       }
 
       const bought = buy.coinsBought ?? amount;
-      status.textContent = `Bought. Selling in 60s…`;
+      status.textContent = `Selling in ${delay}s…`;
 
       setTimeout(async () => {
         status.textContent = 'Selling…';
-
-        const sell = await apiTrade(coin, "SELL", bought);
-        if (!sell?.success) {
-          status.textContent = 'SELL failed';
-          return;
-        }
-
-        status.textContent = 'Done ✅';
-      }, DELAY_MS);
+        const sell = await trade(coin, "SELL", bought);
+        status.textContent = sell?.success ? 'Done ✅' : 'SELL failed';
+      }, delay * 1000);
     };
 
-    footer.prepend(btn);
+    wrapper.append(secInput, btn);
+    footer.prepend(wrapper);
+    footer.prepend(status);
   }
 
-  // Watch for dialog opening
-  const observer = new MutationObserver(() => {
+  const mo = new MutationObserver(() => {
     const dialog = getDialog();
-    if (dialog) insertButton(dialog);
+    if (dialog) ensureUI(dialog);
   });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+  mo.observe(document.body, { childList: true, subtree: true });
 })();
