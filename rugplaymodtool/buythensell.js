@@ -1,3 +1,4 @@
+// this mod was made by ai
 (function () {
   const style = document.createElement("style");
   style.textContent = `
