@@ -1,4 +1,4 @@
-var LinkURL = "https://keepandroidopen.org";
+var LinkUrL = "https://keepandroidopen.org";
 /**
  * Keep Android Open – Countdown Banner
  * Licensed under the GNU General Public License v3.0
