@@ -63,15 +63,11 @@
   }
 
   var locale = resolveLocale(
-    params.lang ||
     document.documentElement.lang ||
     navigator.language ||
     navigator.userLanguage
   );
 
-  // ── Link ────────────────────────────────────────────────────────────
-  var linkParam = params.link;
-  var linkUrl = linkParam === "none" ? null : (linkParam || "https://keepandroidopen.org");
 
 // ── Close button ────────────────────────────────────────────────────
 //  var showClose = params.hidebutton !== "off";
