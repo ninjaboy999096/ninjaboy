@@ -1,4 +1,3 @@
-var LinkUrL = "https://keepandroidopen.org";
 /**
  * Keep Android Open – Countdown Banner
  * Licensed under the GNU General Public License v3.0
@@ -11,14 +10,7 @@ var LinkUrL = "https://keepandroidopen.org";
  *   <script src="https://keepandroidopen.org/banner.js"></script>
  *
  * Query parameters (appended to the script src URL):
- *   lang=fr       Override the browser language (default: auto-detected)
- *   id=myDiv      Insert the banner inside the element with this id
- *                 (default: prepend to <body>)
- *   size=normal   Banner size: "normal" (default) or "mini"
- *   link=URL      Make the banner text a link (default: https://keepandroidopen.org)
- *                 Set link=none to disable the link
- *   hidebutton=on Show an X close button (default: on)
- *                 Set hidebutton=off to hide the close button
+ * removed
  */
 (function () {
   "use strict";
@@ -130,9 +122,9 @@ var LinkUrL = "https://keepandroidopen.org";
 
   var messageText = messages[locale] || messages.en;
 
-  if (linkUrl) {
+  if ("https://keepandroidopen.org") {
     var link = document.createElement("a");
-    link.href = linkUrl;
+    link.href = "https://keepandroidopen.org";
     link.target = "_blank";
     link.rel = "noopener";
     link.textContent = messageText;
