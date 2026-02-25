@@ -26,9 +26,9 @@
   var messages = {
     fa:      "اندروید، یک سکّوی بسته خواهد شد!",
     ar:      "سيصبح نظام أندرويد منصة مغلقة في",
-    en:      "Android will become a locked-down platform",
+    en:      "(this full page ver is by ninjaboy999096 on github!) Android will become a locked-down platform",
     ca:      "Android es convertir\u00E0 en una plataforma tancada",
-    cs:      "Android will become a locked-down platform in",
+    cs:      "(this full page ver is by ninjaboy999096 on github!) Android will become a locked-down platform in",
     de:      "Android wird eine geschlossene Plattform werden.",
     el:      "\u03A4\u03BF Android \u03B8\u03B1 \u03B3\u03AF\u03BD\u03B5\u03B9 \u03BC\u03AF\u03B1 \u03BA\u03BB\u03B5\u03B9\u03C3\u03C4\u03AE \u03C0\u03BB\u03B1\u03C4\u03C6\u03CC\u03C1\u03BC\u03B1",
     es:      "Android se convertir\u00E1 en una plataforma cerrada",
@@ -173,7 +173,7 @@
     link.href = linkUrl;
     link.target = "_blank";
     link.rel = "noopener";
-    link.textContent = messageText + "(this full screen ver is by ninjaboy999096 on github!)";
+    link.textContent = messageText;
     banner.appendChild(link);
   } else {
     banner.appendChild(document.createTextNode(messageText));
