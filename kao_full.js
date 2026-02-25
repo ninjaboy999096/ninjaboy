@@ -140,7 +140,7 @@
       "color:#fff;" +
       "font-size:0.8em;" +
       "cursor:pointer;" +
-      "opacity:1;" +
+      "opacity:0;" +
       "padding:0.25rem 0.5rem;" +
       "line-height:1;" +
       "text-shadow:none;" +
