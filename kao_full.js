@@ -100,28 +100,7 @@
       "box-sizing:border-box;" +
     "}";
 
-  var cssMini =
-    ".kao-banner{" +
-      "position:relative;" +
-      "font-variant-numeric:tabular-nums;" +
-      "background:linear-gradient(180deg,#d32f2f 0%,#b71c1c 100%);" +
-      "border-bottom:2px solid #801313;" +
-      "color:#fff;" +
-      "font-family:'Arial Black',sans-serif;" +
-      "font-weight:900;" +
-      "text-transform:uppercase;" +
-      "letter-spacing:1px;" +
-      "font-size:0.75rem;" +
-      "text-align:center;" +
-      "text-shadow:" +
-        "0px 1px 0px #9e1a1a," +
-        "0px 2px 0px #8a1515," +
-        "0px 3px 5px rgba(0,0,0,0.4);" +
-      "animation:kao-pulse 2s infinite;" +
-      "padding:0.25rem 1.5rem;" +
-      "line-height:1.4;" +
-      "box-sizing:border-box;" +
-    "}";
+
 
   var cssCommon =
     ".kao-banner a{color:#fff;text-decoration:none;}" +
@@ -142,21 +121,7 @@
       "text-shadow:none;" +
     "}"
 
-  var style = document.createElement("style");
-  style.textContent = (size === "mini" ? cssMini : cssNormal) + cssCommon;
-  document.head.appendChild(style);
 
-  // ── Check if previously dismissed (reappears after dismissDays) ─────
-  if (showClose) {
-    try {
-      var dismissed = localStorage.getItem(storageKey);
-      if (dismissed) {
-        var elapsed = Date.now() - Number(dismissed);
-        if (elapsed < dismissDays * 24 * 60 * 60 * 1000) return;
-        localStorage.removeItem(storageKey);
-      }
-    } catch (e) {}
-  }
 
   // ── Create banner DOM ─────────────────────────────────────────────────
   var banner = document.createElement("div");
