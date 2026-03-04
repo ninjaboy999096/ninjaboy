@@ -110,7 +110,7 @@
         return;
       }
 
-      const bought = buy.coinsBought ?? amount;
+      const bought = amount;
       status.textContent = `Selling in ${delay}s…`;
 
       setTimeout(async () => {
