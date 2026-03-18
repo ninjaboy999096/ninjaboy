@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>3D Turkey Sandwich</title>
+  <style>
+    html, body { height:100%; margin:0; overflow:hidden; font-family:sans-serif; }
+    #container { width:100%; height:100%; position:relative; }
+    audio#background-music { display:none; }
+    canvas { display:block; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.152.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="container"></div>
+  <audio id="background-music" autoplay loop></audio>
+
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.152.0/build/three.module.js";
+    import { FontLoader } from "https://unpkg.com/three@0.152.0/examples/jsm/loaders/FontLoader.js";
+    import { TextGeometry } from "https://unpkg.com/three@0.152.0/examples/jsm/geometries/TextGeometry.js";
+
+    function init() {
+      const container = document.getElementById("container");
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f0f0);
+
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 2, 10);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      container.appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(5,10,7.5);
+      scene.add(directionalLight);
+
+      const floorGeometry = new THREE.PlaneGeometry(200,200);
+      const floorMaterial = new THREE.MeshPhongMaterial({ color:0xdddddd, side:THREE.DoubleSide });
+      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+      floor.rotation.x = -Math.PI/2;
+      floor.position.y = -0.01;
+      scene.add(floor);
+
+      const sandwich = createSandwich();
+      scene.add(sandwich);
+
+      create3DText(scene);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        sandwich.rotation.y += 0.005;
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener("resize", () => {
+        const w = window.innerWidth, h = window.innerHeight;
+        renderer.setSize(w,h);
+        camera.aspect = w/h;
+        camera.updateProjectionMatrix();
+      });
+    }
+
+    function create3DText(scene) {
+      const loader = new FontLoader();
+      loader.load('https://unpkg.com/three@0.152.0/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+        const textGeometry = new TextGeometry("turkey sandwich.", {
+          font: font, size: 0.8, height: 0.2, curveSegments: 12,
+          bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelOffset:0, bevelSegments:3
+        });
+        textGeometry.center();
+        const textMaterial = new THREE.MeshPhongMaterial({ color:0x8B4513, shininess:30 });
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.set(0,3,0);
+        scene.add(textMesh);
+      });
+    }
+
+    function createSandwich() {
+      const group = new THREE.Group();
+      const breadMaterial = new THREE.MeshPhongMaterial({ color:0xDEB887, shininess:30 });
+      const turkeyMaterial = new THREE.MeshPhongMaterial({ color:0xF5E1A4, shininess:10 });
+      const lettuceMaterial = new THREE.MeshPhongMaterial({ color:0x78AB46, shininess:50 });
+      const tomatoMaterial = new THREE.MeshPhongMaterial({ color:0xFF6347, shininess:60 });
+
+      const bottomBread = new THREE.Mesh(new THREE.BoxGeometry(5,0.5,8), breadMaterial);
+      bottomBread.position.y = 0.25; group.add(bottomBread);
+
+      const turkeySlice = new THREE.Mesh(new THREE.BoxGeometry(4.5,0.2,7), turkeyMaterial);
+      turkeySlice.position.y = 0.65; group.add(turkeySlice);
+
+      const lettuce = new THREE.Mesh(new THREE.BoxGeometry(4.8,0.15,7.2), lettuceMaterial);
+      lettuce.position.y = 0.875; lettuce.rotation.x = 0.05; group.add(lettuce);
+
+      const tomato = new THREE.Mesh(new THREE.BoxGeometry(4.8,0.15,7.2), tomatoMaterial);
+      tomato.position.y = 1.07; tomato.rotation.x = -0.05; group.add(tomato);
+
+      const topBread = new THREE.Mesh(new THREE.BoxGeometry(5,0.4,8), breadMaterial);
+      topBread.position.y = 1.395; group.add(topBread);
+
+      return group;
+    }
+
+    init();
+
+    const bgMusic = document.getElementById("background-music");
+    if (bgMusic) {
+      const base = "https://ninjaboy999096.vercel.app/turky_sand_withc/";
+      const tracks = [
+        base + "1-02%20Title%20Theme.mp3",
+        base + "1-05%20Super%20Mario%2064%20Main%20Theme.mp3",
+        base + "1-07%20Inside%20The%20Castle%20Walls.mp3"
+      ];
+      const chosen = tracks[Math.floor(Math.random() * tracks.length)];
+      bgMusic.src = chosen;
+      bgMusic.volume = 0.5;
+      bgMusic.loop = true;
+      bgMusic.play().catch(()=>{});
+    }
+  </script>
+</body>
+</html>
