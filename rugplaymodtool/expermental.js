@@ -7,16 +7,27 @@
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  function applyRandomRotation() {
-    const x = randomBetween(-36000, 36000);
-    const y = randomBetween(-36000, 36000);
-    const z = randomBetween(-36000, 36000);
+  function isFlipping() {
+    const transform = coin.style.transform;
+    const match = transform.match(/rotateY\((\d+)deg\)/);
+    if (!match) return false;
+    const deg = parseInt(match[1]);
+    // Default is 0deg, every flip adds 1800 — so any non-zero multiple of 1800 means it's been flipped
+    return deg !== 0 && deg % 1800 === 0;
+  }
 
-    coin.style.transition = 'none';
-    coin.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+  function applyRandomRotation() {
+    if (isFlipping()) {
+      const x = randomBetween(-36000, 36000);
+      const y = randomBetween(-36000, 36000);
+      const z = randomBetween(-36000, 36000);
+
+      coin.style.transition = 'none';
+      coin.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+    }
 
     window._coinChaos = setTimeout(applyRandomRotation, 50);
   }
 
   applyRandomRotation();
-})();
+})();s
