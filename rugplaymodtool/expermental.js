@@ -10,9 +10,9 @@
   }
 
   function applyRandomRotation() {
-    const x = randomBetween(-36000, 36000);
-    const y = randomBetween(-36000, 36000);
-    const z = randomBetween(-36000, 36000);
+    const x = randomBetween(1, 36000);
+    const y = randomBetween(1, 36000);
+    const z = randomBetween(1, 36000);
     coin.style.transition = 'none';
     coin.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
   }
