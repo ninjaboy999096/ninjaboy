@@ -7,27 +7,33 @@
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  function isFlipping() {
-    const transform = coin.style.transform;
+  function shouldApply(transform) {
     const match = transform.match(/rotateY\((\d+)deg\)/);
     if (!match) return false;
     const deg = parseInt(match[1]);
-    // Default is 0deg, every flip adds 1800 — so any non-zero multiple of 1800 means it's been flipped
     return deg !== 0 && deg % 1800 === 0;
   }
 
   function applyRandomRotation() {
-    if (isFlipping()) {
-      const x = randomBetween(-36000, 36000);
-      const y = randomBetween(-36000, 36000);
-      const z = randomBetween(-36000, 36000);
-
-      coin.style.transition = 'none';
-      coin.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
-    }
-
-    window._coinChaos = setTimeout(applyRandomRotation, 50);
+    const x = randomBetween(-36000, 36000);
+    const y = randomBetween(-36000, 36000);
+    const z = randomBetween(-36000, 36000);
+    coin.style.transition = 'none';
+    coin.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
   }
 
-  applyRandomRotation();
-})();s
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.attributeName === 'style') {
+        const transform = coin.style.transform;
+        if (shouldApply(transform)) {
+          applyRandomRotation();
+        }
+      }
+    }
+  });
+
+  observer.observe(coin, { attributes: true });
+
+  window._coinChaosStop = () => observer.disconnect();
+})();
